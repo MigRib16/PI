@@ -1,17 +1,35 @@
 import socket
-import sys
 
-def enviar_comando(ip_destino, porta_destino, comando):
+PORTA_COMUNICACAO = 12345
+PORTA_DESCOBERTA = 12347
+
+def atribuir_funcao(ip_raspberry, funcao):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.connect((ip_destino, porta_destino))
-        s.sendall(comando.encode())
+        try:
+            s.connect((ip_raspberry, PORTA_COMUNICACAO))
+            s.sendall(funcao.encode())
+            print(f"Atribuída a função '{funcao}' para o Raspberry Pi em {ip_raspberry}")
+        except Exception as e:
+            print(f"Erro ao conectar e atribuir função ao Raspberry Pi em {ip_raspberry}: {str(e)}")
 
-# Exemplo de uso para definir o Raspberry Pi como transmissor
-ip_transmissor = "IP_DO_TRANSMISSOR"  # Substitua pelo IP real do Raspberry Pi Transmissor
-porta_transmissor = 12345
-enviar_comando(ip_transmissor, porta_transmissor, "definir_transmissor")
+def descobrir_raspberrys():
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        s.settimeout(5)
 
-# Exemplo de uso para definir o Raspberry Pi como recetor
-ip_recetor = "IP_DO_RECETOR"  # Substitua pelo IP real do Raspberry Pi Recetor
-porta_recetor = 12345
-enviar_comando(ip_recetor, porta_recetor, "definir_recetor")
+        try:
+            s.sendto(b"DESCOBERTA", ('<broadcast>', PORTA_DESCOBERTA))
+            data, addr = s.recvfrom(1024)
+            ip_raspberry = data.decode()
+            print(f"Raspberry Pi descoberto em {ip_raspberry}")
+            return ip_raspberry
+        except socket.timeout:
+            print("Nenhum Raspberry Pi encontrado.")
+            return None
+
+# Descobrir os Raspberry Pis na rede local
+ip_rpi1 = descobrir_raspberrys()
+ip_rpi2 = descobrir_raspberrys()
+
+# Atribuir funções aos Raspberry Pis
+atribuir_funcao(ip_rpi1, "recetor")
+atribuir_funcao(ip_rpi2, "transmissor")

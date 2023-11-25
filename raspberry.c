@@ -1,4 +1,3 @@
-#include <wiringPi.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -6,41 +5,29 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-#define PORTA_FXS_PINO 0  // Substitua pelo número do pino GPIO conectado à porta FXS
-#define PORTA_COMUNICACAO 12345  // Número da porta para a comunicação
+#define PORTA_COMUNICACAO 12345
+#define PORTA_DESCOBERTA 12347
 
 void simular_off_hook(int estado) {
-    // Simular o levantamento ou desligamento do telefone (off-hook/on-hook)
     digitalWrite(PORTA_FXS_PINO, estado);
+    printf("Simulando %s-hook\n", estado ? "off" : "on");
 }
 
 void simular_dtmf(char digit) {
-    // Simular a discagem de um dígito DTMF
-    // Pode envolver enviar os tons DTMF correspondentes
-    printf("Enviando DTMF: %c\n", digit);
-    // Lógica para enviar DTMF ao COIC aqui (substitua pelo seu código)
+    printf("Simulando discagem de DTMF: %c\n", digit);
 }
 
 void receber_dtmf() {
-    // Lógica para receber DTMF do COIC aqui (substitua pelo seu código)
-    // Exemplo de leitura do pino GPIO conectado à porta FXS
-    printf("Recebendo DTMF\n");
+    // Lógica para receber DTMF do PC de Controle
+    printf("Recebendo DTMF do PC de Controle\n");
+    // Adicione a lógica específica para a recepção de DTMF
 }
 
 int main(void) {
-    // Inicializar WiringPi
-    if (wiringPiSetup() == -1) {
-        fprintf(stderr, "Erro ao inicializar o WiringPi\n");
-        exit(EXIT_FAILURE);
-    }
-
-    // Configurar o pino como saída/início ou entrada
-    pinMode(PORTA_FXS_PINO, INPUT);
-
     // Inicializar socket para comunicação
-    int socket_desc, client_sock, c;
-    struct sockaddr_in server, client;
-    
+    int socket_desc;
+    struct sockaddr_in server;
+
     // Criar o socket
     socket_desc = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_desc == -1) {
@@ -48,66 +35,85 @@ int main(void) {
         exit(EXIT_FAILURE);
     }
 
+    // Configurar o endereço do servidor para descoberta
+    struct sockaddr_in server_descoberta;
+    server_descoberta.sin_family = AF_INET;
+    server_descoberta.sin_addr.s_addr = INADDR_ANY;
+    server_descoberta.sin_port = htons(PORTA_DESCOBERTA);
+
+    // Criar socket para descoberta
+    int socket_descoberta = socket(AF_INET, SOCK_DGRAM, 0);
+    if (socket_descoberta == -1) {
+        fprintf(stderr, "Erro ao criar o socket de descoberta\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Associar o socket de descoberta ao endereço do servidor
+    if (bind(socket_descoberta, (struct sockaddr *)&server_descoberta, sizeof(server_descoberta)) < 0) {
+        fprintf(stderr, "Erro ao associar o socket de descoberta\n");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Aguardando mensagem de descoberta...\n");
+
+    char buffer[1024];
+    struct sockaddr_in client;
+    socklen_t client_len = sizeof(client);
+
+    ssize_t bytes_received = recvfrom(socket_descoberta, buffer, sizeof(buffer), 0, (struct sockaddr *)&client, &client_len);
+
+    if (bytes_received > 0) {
+        // Enviar o IP de volta para o PC de Controle
+        sendto(socket_descoberta, inet_ntoa(client.sin_addr), strlen(inet_ntoa(client.sin_addr)), 0, (struct sockaddr *)&client, client_len);
+    }
+
+    close(socket_descoberta);
+
+    // Convertendo o buffer para o IP do PC de Controle
+    char ip_pc_controle[16];
+    strncpy(ip_pc_controle, buffer, sizeof(ip_pc_controle));
+    ip_pc_controle[sizeof(ip_pc_controle) - 1] = '\0';
+
     // Preparar a estrutura sockaddr_in
+    server.sin_addr.s_addr = inet_addr(ip_pc_controle);
     server.sin_family = AF_INET;
-    server.sin_addr.s_addr = INADDR_ANY;
     server.sin_port = htons(PORTA_COMUNICACAO);
 
-    // Associar
-    if (bind(socket_desc, (struct sockaddr *)&server, sizeof(server)) < 0) {
-        fprintf(stderr, "Erro ao associar o socket\n");
+    // Conectar ao PC de Controle
+    if (connect(socket_desc, (struct sockaddr *)&server, sizeof(server)) < 0) {
+        fprintf(stderr, "Erro ao conectar ao PC de Controle\n");
         exit(EXIT_FAILURE);
     }
 
-    // Ouvir
-    listen(socket_desc, 3);
+    printf("Conectado ao PC de Controle\n");
 
-    // Aguardar pela conexão do PC de controle
-    printf("Aguardando conexão do PC de controle...\n");
-    c = sizeof(struct sockaddr_in);
-    client_sock = accept(socket_desc, (struct sockaddr *)&client, (socklen_t*)&c);
-    if (client_sock < 0) {
-        fprintf(stderr, "Erro ao aceitar a conexão do PC de controle\n");
-        exit(EXIT_FAILURE);
-    }
+    // Receber a função atribuída pelo PC de Controle
+    char funcao[20];
+    recv(socket_desc, funcao, sizeof(funcao), 0);
+    printf("Função atribuída pelo PC de Controle: %s\n", funcao);
 
-    printf("Conexão do PC de controle aceita\n");
+    // Lógica específica para o recetor ou transmissor
+    if (strcmp(funcao, "recetor") == 0) {
+        receber_dtmf();  // Lógica para receber DTMF
+    } else if (strcmp(funcao, "transmissor") == 0) {
+        // Lógica específica do transmissor
+        simular_off_hook(1);  // Simular off-hook
+        sleep(1);             // Aguardar um tempo para estabilização
 
-    // Receber o comando do PC de controle
-    char comando[256];
-    recv(client_sock, comando, sizeof(comando), 0);
-
-    // Lógica para interpretar o comando remoto e definir o papel (transmissor ou recetor)
-    if (strcmp(comando, "definir_transmissor") == 0) {
-        // Lógica específica para atuar como transmissor
-        // ...
-
-        // Exemplo: Simular o off-hook
-        simular_off_hook(HIGH);
-        sleep(1);  // Aguardar um tempo para a estabilização
-
-        // Exemplo: Simular a discagem de números DTMF
+        // Simular a discagem de números DTMF
         char numeros[] = "1234567890";
         for (int i = 0; numeros[i] != '\0'; ++i) {
             simular_dtmf(numeros[i]);
             sleep(1);  // Aguardar um tempo entre dígitos
         }
 
-        // Exemplo: Simular o retorno ao estado "on-hook"
-        simular_off_hook(LOW);
-    } else if (strcmp(comando, "definir_recetor") == 0) {
-        // Lógica específica para atuar como recetor
-        // ...
-
-        // Exemplo: Lógica para receber DTMF
-        receber_dtmf();
-    } else {
-        fprintf(stderr, "Comando inválido do PC de controle\n");
+        // Simular o retorno ao estado "on-hook"
+        simular_off_hook(0);
     }
 
-    // Fechar a conexão com o PC de controle
-    close(client_sock);
+    // Fechar a conexão com o PC de Controle
     close(socket_desc);
 
     return 0;
 }
+
