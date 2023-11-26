@@ -29,13 +29,6 @@ void simular_dtmf_receptor(char dtmf_digit) {
     printf("Recebendo DTMF: %c\n", dtmf_digit);
 }
 
-int redirecionar_saida(int client_sock) {
-    // Redirecionar a saída padrão para o socket
-    dup2(client_sock, STDOUT_FILENO);
-    close(client_sock);
-    return 0;
-}
-
 void transmissor(int argc, char *argv[]) {
     printf("Função: Transmissor\n");
     printf("Variáveis recebidas:\n");
@@ -66,14 +59,6 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Argumento inválido. Use 'transmissor' ou 'recetor'.\n");
         exit(EXIT_FAILURE);
     }
-
-   
-    // Redirecionar a saída
-    redirecionar_saida(client_sock);
-
-    // Fechar a conexão com o cliente
-    close(client_sock);
-    close(socket_desc);
 
     return 0;
 }
