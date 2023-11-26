@@ -23,6 +23,13 @@ void receber_dtmf() {
     // Adicione a lógica específica para a recepção de DTMF
 }
 
+// Função para iniciar o programa remotamente usando SSH
+void iniciar_programa_remotamente(const char *ip_pc_controle, const char *funcao) {
+    char comando[100];
+    sprintf(comando, "ssh %s 'cd /caminho/do/seu/programa && ./programa %s'", ip_pc_controle, funcao);
+    system(comando);
+}
+
 int main(void) {
     // Inicializar socket para comunicação
     int socket_desc;
@@ -113,6 +120,9 @@ int main(void) {
 
     // Fechar a conexão com o PC de Controle
     close(socket_desc);
+
+    // Iniciar o programa remotamente
+    iniciar_programa_remotamente(ip_pc_controle, funcao);
 
     return 0;
 }

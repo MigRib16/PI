@@ -1,4 +1,5 @@
 import socket
+import subprocess
 
 PORTA_COMUNICACAO = 12345
 PORTA_DESCOBERTA = 12347
@@ -33,3 +34,14 @@ ip_rpi2 = descobrir_raspberrys()
 # Atribuir funções aos Raspberry Pis
 atribuir_funcao(ip_rpi1, "recetor")
 atribuir_funcao(ip_rpi2, "transmissor")
+
+# Iniciar programa remotamente nos Raspberry Pis via SSH
+def iniciar_programa_remotamente(ip_raspberry, funcao):
+    try:
+        subprocess.run(["ssh", ip_raspberry, f"./caminho/do/seu/programa/programa {funcao}"])
+    except Exception as e:
+        print(f"Erro ao iniciar programa remotamente no Raspberry Pi em {ip_raspberry}: {str(e)}")
+
+# Iniciar o programa remotamente para cada Raspberry Pi
+iniciar_programa_remotamente(ip_rpi1, "recetor")
+iniciar_programa_remotamente(ip_rpi2, "transmissor")
