@@ -8,13 +8,35 @@
 
 #define PORTA_COMUNICACAO 12345
 #define TAMANHO_MAX_VARIAVEL 100
-
+#define LRC 13
+#define SHK 15
 void simular_off_hook() {
-    printf("Telefone fora do gancho (Off-hook)\n");
+    pinMode(LRC, OUTPUT);
+    pinMode(SHK, INPUT);
+    digitalWrite(LRC, HIGH);
+    if(SHK==HIGH)
+    {
+        printf("Telefone fora do gancho (Off-hook)\n");
+    }
+    else if(SHK==LOW)
+    {
+        printf("Telefone no gancho (On-hook)\n");
+    }
+
 }
 
 void simular_on_hook() {
-    printf("Telefone no gancho (On-hook)\n");
+    pinMode(LRC, OUTPUT);
+    pinMode(SHK, INPUT);
+    digitalWrite(LRC, LOW);
+    if(SHK==LOW)
+    {
+        printf("Telefone no gancho (On-hook)\n");
+    }
+    if(SHK==HIGH)
+    {
+        printf("Telefone fora do gancho (Off-hook)\n");
+    }
 }
 
 void simular_dial_tone() {
