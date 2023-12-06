@@ -10,16 +10,23 @@
 #define TAMANHO_MAX_VARIAVEL 100
 #define LRC 13
 #define SHK 15
+
+#define INMais 1
+#define INMenos 2
+#define TONE 8
+#define D0 14
+#define D1 15
+#define D2 16
+#define D3 17
+
 void simular_off_hook() {
     pinMode(LRC, OUTPUT);
     pinMode(SHK, INPUT);
     digitalWrite(LRC, HIGH);
-    if(SHK==HIGH)
-    {
+    if(SHK==HIGH) {
         printf("Telefone fora do gancho (Off-hook)\n");
     }
-    else if(SHK==LOW)
-    {
+    else if(SHK==LOW) {
         printf("Telefone no gancho (On-hook)\n");
     }
 
@@ -29,12 +36,10 @@ void simular_on_hook() {
     pinMode(LRC, OUTPUT);
     pinMode(SHK, INPUT);
     digitalWrite(LRC, LOW);
-    if(SHK==LOW)
-    {
+    if(SHK==LOW) {
         printf("Telefone no gancho (On-hook)\n");
     }
-    if(SHK==HIGH)
-    {
+    if(SHK==HIGH) {
         printf("Telefone fora do gancho (Off-hook)\n");
     }
 }
@@ -44,10 +49,23 @@ void simular_dial_tone() {
 }
 
 void simular_dtmf_transmissor(char dtmf_digit) {
+    pinMode(D0, INPUT);
+    pinMode(D1, INPUT);
+    pinMode(D2, INPUT);
+    pinMode(D3, INPUT);
+    pinMode(TONE, OUTPUT);
+
     printf("Transmitindo DTMF: %c\n", dtmf_digit);
 }
 
 void simular_dtmf_receptor(char dtmf_digit) {
+    pinMode(INMais, INPUT);
+    pinMode(INMenos, INPUT);
+    pinMode(D0, OUTPUT);
+    pinMode(D1, OUTPUT);
+    pinMode(D2, OUTPUT);
+    pinMode(D3, OUTPUT);
+
     printf("Recebendo DTMF: %c\n", dtmf_digit);
 }
 
