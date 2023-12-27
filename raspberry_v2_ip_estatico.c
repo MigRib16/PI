@@ -1,6 +1,4 @@
 // shared_code.c
-#include <wiringPiSPI.h>
-#include <wiringPi.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -11,8 +9,15 @@
 #include <math.h>
 #define PORTA_COMUNICACAO 12345
 #define TAMANHO_MAX_VARIAVEL 100
-#define LRC 13
-#define SHK 15
+
+#define LRC 17
+#define SHK 27
+
+#define D3 25
+#define D2 24
+#define D1 23
+#define D0 22
+
 #define CHANNEL 0       // SPI channel
 #define SPEED 1000000    // SPI speed
 
@@ -98,7 +103,38 @@ void simular_dial_tone() {
 }
 
 void simular_dtmf_transmissor(char dtmf_digit) {
-    printf("Transmitindo DTMF: %c\n", dtmf_digit);
+    int num;
+    printf("Qual o tom que quer Enviar?: ");
+	scanf("%d", &num);
+	
+	//Decimal To Binary
+	int binary[5];
+	int i = 0;
+	
+	if(num == 0){
+		for(int j = 0; j < 6; j++) {
+			binary[j] = 0; } }
+		
+	while(num > 0) {
+		binary[i] = num % 2; 
+		num = num / 2;
+		i++; }
+
+	gpioWrite(D0, binary[0]);
+	gpioWrite(D1, binary[1]);
+	gpioWrite(D2, binary[2]);
+	gpioWrite(D3, binary[3]);
+	
+	gpioDelay(1000000);
+	int state0 = gpioRead(D0);
+	int state1 = gpioRead(D1);
+	int state2 = gpioRead(D2);
+	int state3 = gpioRead(D3);
+
+	printf("O DTMF enviado foi %d %d %d %d\n", binary[3], binary[2], binary[1], binary[0]);
+	printf("O DTMF enviado foi %d %d %d %d\n", state3, state2, state1, state0);
+	
+	gpioDelay(500000);
 }
 
 void simular_dtmf_receptor(char dtmf_digit) {
