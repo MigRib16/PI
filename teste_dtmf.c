@@ -34,7 +34,7 @@ int main(){
 	//if (escolha==2)
 	//	break;
 	
-	printf("Qual o tom que quer Enviar?: ");
+	printf("Qual o tom que quer Enviar?: \n");
 	scanf("%d", &num);
 	
 	//Decimal To Binary
@@ -50,7 +50,7 @@ int main(){
 		printf("%d",binary[i]);
 		num = num / 2;
 		i++; }
-
+	printf("\n");
 	//gpioWrite(D0, binary[0]);
 	//gpioWrite(D1, binary[1]);
 	//gpioWrite(D2, binary[2]);
