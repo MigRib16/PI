@@ -7,10 +7,13 @@
 #define D1 23
 #define D0 22
 
+#define RD 1
+#define WR 0
+#define RSO 5
+
 int main(){
 	int escolha;
 	int num;
-	int dtmf;
 	
 	if(gpioInitialise() < 1)
 		{
@@ -23,52 +26,75 @@ int main(){
 	gpioSetMode(D2, PI_OUTPUT);
 	gpioSetMode(D1, PI_OUTPUT);
 	gpioSetMode(D0, PI_OUTPUT);
+
+	gpioSetMode(RD, PI_OUTPUT);
+	gpioSetMode(WR, PI_OUTPUT);
+	gpioSetMode(RSO, PI_OUTPUT);
+
+	//Inicialization
+	gpioWrite(RD, 0);
+	gpioWrite(WR, 1);
+	gpioWrite(RSO, 1);
+
+	gpioDelay(500000);
+
+	gpioWrite(WR, 0);
+	gpioWrite(RD, 1);
+
+	gpioDelay(500000);
+
+	gpioWrite(RD, 0);
+	gpioWrite(WR, 1);
 	
 	while(1)
 	{
 	//define state of input
 	
-    //printf("Quer enviar um tom DTMF? Enviar(1) Terminar(2)\n");
-	//scanf("%d", &escolha);
+    printf("Quer enviar um tom DTMF? Enviar(1) Terminar(2)\n");
+	scanf("%d", &escolha);
 	
-	//if (escolha==2)
-	//	break;
+	if (escolha==2)
+		break;
 	
-	printf("Qual o tom que quer Enviar?: \n");
-	scanf("%d", &num);
-	
-	//Decimal To Binary
-	int binary[5];
-	int i = 0;
-	
-	if(num == 0){
-		for(int j = 0; j < 6; j++) {
-			binary[j] = 0; } }
-		
-	while(num > 0) {
-		binary[i] = num % 2; 
-		printf("%d",binary[i]);
-		num = num / 2;
-		i++; }
-	printf("\n");
-	//gpioWrite(D0, binary[0]);
-	//gpioWrite(D1, binary[1]);
-	//gpioWrite(D2, binary[2]);
-	//gpioWrite(D3, binary[3]);
-	
-	//gpioDelay(1000000);
-	//int state0 = gpioRead(D0);
-	//int state1 = gpioRead(D1);
-	//int state2 = gpioRead(D2);
-	//int state3 = gpioRead(D3);
+	int number[4];
 
-	//printf("O DTMF enviado foi %d %d %d %d\n", binary[3], binary[2], binary[1], binary[0]);
-	//printf("O DTMF enviado foi %d %d %d %d\n", state3, state2, state1, state0);
+	for(int k = 0; k < 4; k++) {
+
+		printf("Que Dígito que marcar?: ");
+		scanf("%d", &num);
+		number[k] = num;
 	
-	//gpioDelay(500000);
-	//}
-	//gpioTerminate();
-}
+		//Decimal To Binary
+		int binary[5];
+		int i = 0;
+	
+		if(number[k] == 0){
+			for(int j = 0; j < 6; j++) {
+				binary[j] = 0; } }
+		
+		while(number[k] > 0) {
+			binary[i] = num % 2; 
+			num = num / 2;
+			i++; }
+
+		gpioWrite(D0, binary[0]);
+		gpioWrite(D1, binary[1]);
+		gpioWrite(D2, binary[2]);
+		gpioWrite(D3, binary[3]);
+	
+		gpioDelay(1000000);
+		int state0 = gpioRead(D0);
+		int state1 = gpioRead(D1);
+		int state2 = gpioRead(D2);
+		int state3 = gpioRead(D3);
+
+		//printf("O DTMF enviado foi %d %d %d %d\n", binary[3], binary[2], binary[1], binary[0]);
+		printf("O DTMF enviado foi %d %d %d %d\n", state3, state2, state1, state0);
+	
+		gpioDelay(500000);
+	} }
+	gpioTerminate();
+
 	return EXIT_SUCCESS;
 }
 
