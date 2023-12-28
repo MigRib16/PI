@@ -34,12 +34,9 @@ int main(){
 	gpioSetMode(CS, PI_OUTPUT);
 
 	//Inicialization
-	gpioWrite(RD, 0);
+	gpioWrite(RD, 1);
 	gpioWrite(WR, 1);
 	gpioWrite(RSO, 1);
-	gpioWrite(CS, 1);
-
-	gpioDelay(500000);
 
 	gpioWrite(WR, 0);
 	gpioWrite(RD, 1);
@@ -48,6 +45,7 @@ int main(){
 
 	gpioWrite(RD, 0);
 	gpioWrite(WR, 1);
+	gpioWrite(RSO, 1);
 	
 	while(1)
 	{
@@ -79,42 +77,33 @@ int main(){
 				binary[i] = number[k] % 2;    
 				number[k] =  number[k] / 2;  }  }
 
-		gpioWrite(CS, 1);
-		gpioWrite(RSO, 0);
-		gpioWrite(WR, 0);
-		gpioWrite(RD, 1);
-
 		gpioWrite(D0, binary[0]);
 		gpioWrite(D1, binary[1]);
 		gpioWrite(D2, binary[2]);
 		gpioWrite(D3, binary[3]);
-	
-		gpioDelay(500000); 
-
-		gpioWrite(CS, 0);
-		gpioWrite(RSO, 1);
-
-		gpioDelay(500000); 
 
 		gpioWrite(CS, 1);
 		gpioWrite(RSO, 0);
-		gpioWrite(WR, 1);
-		gpioWrite(RD, 0);
 
-		gpioDelay(500000); 
+		gpioDelay(100); 
+
+		gpioWrite(WR, 0);
+		gpioWrite(RD, 1);
+	
+		gpioDelay(20); 
 
 		int state0 = gpioRead(D0);
 		int state1 = gpioRead(D1);
 		int state2 = gpioRead(D2);
 		int state3 = gpioRead(D3);
 
-		//int stateRSO = gpioRead(RSO);
-		//int stateWR = gpioRead(WR);
-		//int stateRD = gpioRead(RD);
+		int stateRSO = gpioRead(RSO);
+		int stateWR = gpioRead(WR);
+		int stateRD = gpioRead(RD);
 
 		printf("O DTMF enviado foi %d %d %d %d\n", binary[3], binary[2], binary[1], binary[0]);
 		printf("O DTMF recebido foi %d %d %d %d\n", state3, state2, state1, state0);
-		//printf("Temos: RSO = %d, WR = %d, RD = %d\n", stateRSO, stateWR, stateRD);
+		printf("Temos: RSO = %d, WR = %d, RD = %d\n", stateRSO, stateWR, stateRD);
 	
 		gpioDelay(500000);
 	} }
