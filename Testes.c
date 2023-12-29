@@ -50,7 +50,6 @@ void colocar_off_hook(){
              break;
 	    }
 	
-	    gpioDelay(500000);
 	}
 }
 

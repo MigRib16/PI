@@ -89,6 +89,7 @@ int main(int argc, char **argv){
     for(int i=0;i<size;i++){
         frequencies[i]=i*0.1;
     }
+	//Ao analisar a magnitude do espectro, é possível identificar quais frequências têm maior influência ou contribuição no sinal.
     for (int i = 0; i <= size; i++) {
         magnitude[i]=cabs(fftResult[i]);
          magnitude[0]=0;
