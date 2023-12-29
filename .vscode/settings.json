@@ -58,6 +58,7 @@
   "C_Cpp_Runner.msvcSecureNoWarnings": false,
   "files.associations": {
     "fftw3.h": "c",
-    "abe_adcdacpi.h": "c"
+    "abe_adcdacpi.h": "c",
+    "stdio.h": "c"
   }
 }

@@ -6,11 +6,11 @@
 #include <pigpio.h>
 #include <complex.h>
 #include <fftw3.h>
-//gcc ../../ABElectronics_C_Libraries/ADCDACPi/ABE_ADCDACPi.c Testes.c -o Testes
+//gcc ../../ABElectronics_C_Libraries/ADCDACPi/ABE_ADCDACPi.c Testes.c -o Testes -lpigpio -lrt -lpthread -lfftw3 -lfftw3f -lm
 #include "../../ABElectronics_C_Libraries/ADCDACPi/ABE_ADCDACPi.h"  //alterar
 
 #define LRC 17
-#define SHK 27
+#define LRD 18
 #define RV 2
 #define numberofsamples 200000 //Aproximadamente 200 seg
 
@@ -22,7 +22,7 @@ void performFFT(double *input, double *output, int size) {
 
 void colocar_off_hook(){
     gpioSetMode(LRC, PI_OUTPUT);
-	gpioSetMode(SHK, PI_INPUT);
+	gpioSetMode(LRD, PI_INPUT);
    
    int escolha;
     while(1)
@@ -37,7 +37,7 @@ void colocar_off_hook(){
 	    gpioWrite(LRC, escolha);  // 1 = OnHook | 0 = OffHook
 	
 	    gpioDelay(1000000);
-	    int state = gpioRead(SHK);
+	    int state = gpioRead(LRD);
 	
 	    if(state == 1)
 	    {
@@ -106,11 +106,11 @@ int main(int argc, char **argv){
 			exit(1); // if the SPI bus fails to open exit the program
 		}
     //Relé
-    //colocar_off_hook();
-    //usleep(2000000); //Pausa 2 seg
-    verificar_dial_tone();
-    //usleep(10000000); //Pausa 10 seg para marcar o tom
-    //verificar_RV();
+    colocar_off_hook();
+    usleep(2000000); //Pausa 2 seg
+    //verificar_dial_tone();
+    usleep(10000000); //Pausa 10 seg para marcar o tom
+    verificar_RV();
 	
 
 	(void)argc;
