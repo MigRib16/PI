@@ -4,7 +4,7 @@
  *  Created on: 27 Dec 2023
  *
  *      compile with "gcc -o teste_dial teste_dial.c -lpigpio -lrt -lpthread -lfftw3 -lfftw3f -lm"
- *      run with ".teste_RV"
+ *      run with "sudo ./teste_dial"
  */
 #include <stdio.h>
 #include <stdint.h>

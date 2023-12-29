@@ -1,3 +1,12 @@
+/*
+ * teste_adc.c
+ *
+ *  Created on: 27 Dec 2023
+ *
+ *      compile with "gcc -o teste_dtmf teste_dtmf.c -lpigpio -lrt -lpthread"
+ *      run with "sudo ./teste_dtmf"
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <pigpio.h>
@@ -208,7 +217,3 @@ int main(){
 
 	return EXIT_SUCCESS;
 }
-
-//gcc -o teste_dtmf teste_dtmf.c -lpigpio -lrt -lpthread
-
-//sudo ./teste_dtmf
