@@ -107,7 +107,7 @@ int main(int argc, char **argv){
 
 
 
-    printf("Max value: %.2f e max index: %.2f\n",maxValue,maxIndex);
+    printf("Max value: %f e max index: %d\n",maxValue,maxIndex);
 
     // // Imprimir o sinal no domínio do tempo
     // printf("Sinal no Domínio do Tempo:\n");
