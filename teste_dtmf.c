@@ -31,23 +31,51 @@ int Spam(int num) {
 
 void readStatus() {
 
-	gpioWrite(RD, 0);		//Read Status
+	gpioWrite(RSO, 1);		//Read Status
+	gpioWrite(RD, 0);	
 	gpioWrite(WR, 1);
-	gpioWrite(RSO, 1);
 
 	return; }
 
-void Inicilization() {
+void Inicialization() {
 
 	gpioDelay(100000);
 
 	readStatus();
+	// Write to Control Register -> CRA -> WR 0 0 0 0 -> CRA -> WR 1 0 0 0 -> Change to CRB -> CRB -> WR 0 0 0 0
+	gpioWrite(D0, 0);
+	gpioWrite(D1, 0);
+	gpioWrite(D2, 0);
+	gpioWrite(D3, 0);
 
-	gpioDelay(100);
-
-	gpioWrite(WR, 0);
+	gpioWrite(WR, 0);		// CRA: Ler 0000
 	gpioWrite(RD, 1);
+	gpioDelay(500);
 
+	gpioWrite(WR, 1);	
+	gpioWrite(RD, 0);
+	gpioDelay(500);
+
+	gpioWrite(WR, 0);		// CRA: Ler 0000
+	gpioWrite(RD, 1);
+	gpioDelay(500);
+
+	gpioWrite(WR, 1);	
+	gpioWrite(RD, 0);
+	gpioDelay(500);
+
+	gpioWrite(D3, 1);
+	gpioWrite(WR, 0);		// CRA: Ler 1000 To Change To CRB
+	gpioWrite(RD, 1);
+	gpioDelay(500);
+
+	gpioWrite(WR, 1);	
+	gpioWrite(RD, 0);
+	gpioDelay(500);
+
+	gpioWrite(D3, 0);		// CRB: Ler 0000
+	gpioWrite(WR, 0);	
+	gpioWrite(RD, 1);
 	gpioDelay(500);
 
 	readStatus();
@@ -90,8 +118,7 @@ int main(){
 	gpioSetMode(CS, PI_OUTPUT);
 	gpioSetMode(IRQ, PI_INPUT);
 
-	Inicilization();
-
+	Inicialization();
 
 	while(1)
 	{
@@ -125,51 +152,57 @@ int main(){
 				binary[i] = number[k] % 2;    
 				number[k] =  number[k] / 2;  }  }
 
-		gpioDelay(200);
-
-		gpioWrite(CS, 1);			// Write to Control A
-		gpioWrite(RSO, 1);
-		gpioWrite(RD, 1);
-		gpioWrite(WR, 0);
-
 		gpioDelay(500);
 
-		gpioWrite(CS, 0);			// Write to Control B
-		gpioWrite(RSO, 1);
+		gpioWrite(RSO, 1);			// Write to Control A '1101'
+
+		gpioWrite(D0, 1);
+		gpioWrite(D1, 0);
+		gpioWrite(D2, 1);
+		gpioWrite(D3, 1);
+
 		gpioWrite(RD, 1);
 		gpioWrite(WR, 0);
-
 		gpioDelay(500);
 
-		gpioWrite(RSO, 0);			// Write to Transmit Data Register
-		gpioDelay(1000); 
+		gpioWrite(WR, 1);	
+		gpioWrite(RD, 0);
+		gpioDelay(500);
+
+		gpioWrite(RSO, 1);			// Write to Control B '0000'
+
+		gpioWrite(D0, 0);
+		gpioWrite(D1, 0);
+		gpioWrite(D2, 0);
+		gpioWrite(D3, 0);
+
+		gpioWrite(RD, 1);			
 		gpioWrite(WR, 0);
-		gpioWrite(RD, 1);
-
 		gpioDelay(500);
+
+		gpioWrite(WR, 1);	
+		gpioWrite(RD, 0);
+		gpioDelay(500);
+
+		gpioWrite(RSO, 0);			// Write to Transmit Data Register 'INPUT'
 
 		gpioWrite(D0, binary[0]);
 		gpioWrite(D1, binary[1]);
 		gpioWrite(D2, binary[2]);
 		gpioWrite(D3, binary[3]);
 
+		gpioDelay(500); 
+		gpioWrite(RD, 1);
+		gpioWrite(WR, 0);
+		gpioDelay(500);
+
 		gpioDelay(50000);
 
-		readStatus();
+		DataBusRD();
+		StateRD();	
+		gpioDelay(50000); } 
 
-		int state0 = gpioRead(D0);
-		int state1 = gpioRead(D1);
-		int state2 = gpioRead(D2);
-		int state3 = gpioRead(D3);
-
-		DataBusRD();	
-		gpioDelay(50000);
-	
-	} 
-
-	printf("Você ligou para o número %d %d %d %d\n", dtmf[0], dtmf[1], dtmf[2], dtmf[3]); 
-	
-	}
+	printf("Você ligou para o número %d %d %d %d\n", dtmf[0], dtmf[1], dtmf[2], dtmf[3]); }
 
 	gpioTerminate();
 
