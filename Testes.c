@@ -6,8 +6,8 @@
 #include <pigpio.h>
 #include <complex.h>
 #include <fftw3.h>
-
-#include "../ABE_ADCDACPi.h"  //alterar
+//gcc ../../ABElectronics_C_Libraries/ADCDACPi/ABE_ADCDACPi.c Testes.c -o Testes
+#include "../../ABElectronics_C_Libraries/ADCDACPi/ABE_ADCDACPi.h"  //alterar
 
 #define LRC 17
 #define SHK 27
@@ -32,7 +32,7 @@ void colocar_off_hook(){
 	    scanf("%d", &escolha);
 	
 	    if (escolha==2)
-		    return (0);
+		    return EXIT_SUCCESS;
 		
 	    gpioWrite(LRC, escolha);  // 1 = OnHook | 0 = OffHook
 	
@@ -88,11 +88,11 @@ void verificar_dial_tone(){
 		    samplearray[x] = read_adc_voltage(1, 0); // read from adc channel 1
 	    }
         //Como detetar o dial tone?
-        performFFT(samplearray, output, numSamples);
-        for (int i = 0; i < numSamples / 2 + 1; i++) {
+        performFFT(samplearray, output, numberofsamples);
+        for (int i = 0; i < numberofsamples / 2 + 1; i++) {
             double magnitude = output[i];
             // Frequência correspondente ao índice i: frequencia = i * (taxa de amostragem / numSamples)
-            double frequency = i * (double)numSamples / (double)numSamples;
+            double frequency = i * (double)numberofsamples / (double)numberofsamples;
             printf("Frequencia: %.2f Hz, Magnitude: %.4f\n", frequency, magnitude);
         }
 	}
@@ -106,17 +106,17 @@ int main(int argc, char **argv){
 			exit(1); // if the SPI bus fails to open exit the program
 		}
     //Relé
-    colocar_off_hook();
-    usleep(2000000); //Pausa 2 seg
+    //colocar_off_hook();
+    //usleep(2000000); //Pausa 2 seg
     verificar_dial_tone();
-    usleep(10000000); //Pausa 10 seg para marcar o tom
-    verificar_RV();
+    //usleep(10000000); //Pausa 10 seg para marcar o tom
+    //verificar_RV();
 	
 
 	(void)argc;
 	(void)argv;
 
-    gpioWrite(LRC, 0); //colocar relé a 0 na terminação
+    //gpioWrite(LRC, 0); //colocar relé a 0 na terminação
     gpioTerminate();
     
 	return (0);

@@ -3,7 +3,7 @@
 #include <pigpio.h>
 
 #define LRC 17
-#define SHK 27
+#define LRD 18
 
 int main(){
 	int escolha;
@@ -15,7 +15,7 @@ int main(){
 		
 	//define inputs outputs
 	gpioSetMode(LRC, PI_OUTPUT);
-	gpioSetMode(SHK, PI_INPUT);
+	gpioSetMode(LRD, PI_INPUT);
 	
 	while(1)
 	{
@@ -30,7 +30,7 @@ int main(){
 	gpioWrite(LRC, escolha);  // 0 = OnHook | 1 = OffHook
 	
 	gpioDelay(1000000);
-	int state = gpioRead(27);
+	int state = gpioRead(LRD);
 	
 	if(state == 1)
 	{

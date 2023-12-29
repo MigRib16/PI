@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <pigpio.h>
 
-#define RV 2
+#define RV 5
 
 int main(){
 
@@ -20,7 +20,7 @@ int main(){
 			fprintf(stderr,"Falha ao inicializar o pigpio\n");
 			return EXIT_FAILURE;
 		}
-		
+		gpioWrite(RV,1);
 	//define inputs outputs
 	gpioSetMode(RV, PI_INPUT);
 	
