@@ -14,8 +14,8 @@
 #define RV 2
 #define numberofsamples 200000 //Aproximadamente 200 seg
 
-void performFFT(double complex *input, double complex *output, int size) {
-    fftw_plan plan = fftw_plan_dft_1d(size, input, output, FFTW_FORWARD, FFTW_ESTIMATE);
+void performFFT(double *input, double *output, int size) {
+    fftw_plan plan = fftw_plan_r2r_1d(size, input, output, FFTW_R2HC, FFTW_ESTIMATE);
     fftw_execute(plan);
     fftw_destroy_plan(plan);
 }
@@ -59,6 +59,20 @@ void clearscreen ()
     printf("\033[2J\033[1;1H");
 }
 
+void verificar_RV(){
+    gpioSetMode(RV, PI_INPUT);
+    int state = gpioRead(RV);
+	
+    while(1){
+	    if(state == 0)
+	    {
+		    printf("Ringing Voltage detetado\n");
+            gpioDelay(7000000);
+            break;
+	    }
+    }
+}
+
 void verificar_dial_tone(){
     
     double samplearray[numberofsamples];
@@ -83,6 +97,7 @@ void verificar_dial_tone(){
         }
 	}
 }
+
 int main(int argc, char **argv){
 	setvbuf (stdout, NULL, _IONBF, 0); // needed to print to the command line
 
@@ -92,15 +107,17 @@ int main(int argc, char **argv){
 		}
     //Relé
     colocar_off_hook();
-    usleep(2000000) //Pausa 2 seg
+    usleep(2000000); //Pausa 2 seg
     verificar_dial_tone();
-    //dial-tone
+    usleep(10000000); //Pausa 10 seg para marcar o tom
+    verificar_RV();
 	
 
 	(void)argc;
 	(void)argv;
 
     gpioWrite(LRC, 0); //colocar relé a 0 na terminação
-
+    gpioTerminate();
+    
 	return (0);
 }
