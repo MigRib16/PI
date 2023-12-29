@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <pigpio.h>
+#include <complex.h>
+#include <fftw3.h>
 
 #include "../ABE_ADCDACPi.h"  //alterar
 
@@ -11,6 +13,12 @@
 #define SHK 27
 #define RV 2
 #define numberofsamples 200000 //Aproximadamente 200 seg
+
+void performFFT(double complex *input, double complex *output, int size) {
+    fftw_plan plan = fftw_plan_dft_1d(size, input, output, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_execute(plan);
+    fftw_destroy_plan(plan);
+}
 
 void colocar_off_hook(){
     gpioSetMode(LRC, PI_OUTPUT);
@@ -57,7 +65,7 @@ void verificar_dial_tone(){
 
 	int x;
 	double aux;
-
+    double output[numberofsamples];
 	while (1){
 		clearscreen();
 
@@ -66,6 +74,13 @@ void verificar_dial_tone(){
 		    samplearray[x] = read_adc_voltage(1, 0); // read from adc channel 1
 	    }
         //Como detetar o dial tone?
+        performFFT(samplearray, output, numSamples);
+        for (int i = 0; i < numSamples / 2 + 1; i++) {
+            double magnitude = output[i];
+            // Frequência correspondente ao índice i: frequencia = i * (taxa de amostragem / numSamples)
+            double frequency = i * (double)numSamples / (double)numSamples;
+            printf("Frequencia: %.2f Hz, Magnitude: %.4f\n", frequency, magnitude);
+        }
 	}
 }
 int main(int argc, char **argv){
