@@ -11,6 +11,7 @@
 #define WR 0
 #define RSO 1
 #define CS 14
+#define IRQ 4
 
 int main(){
 	int escolha;
@@ -77,6 +78,8 @@ int main(){
 				binary[i] = number[k] % 2;    
 				number[k] =  number[k] / 2;  }  }
 
+
+
 		gpioWrite(D0, binary[0]);
 		gpioWrite(D1, binary[1]);
 		gpioWrite(D2, binary[2]);
@@ -87,10 +90,22 @@ int main(){
 
 		gpioDelay(100); 
 
-		gpioWrite(WR, 0);
-		gpioWrite(RD, 1);
+		gpioWrite(CS, 0);
+		gpioWrite(RSO, 1);
 	
-		gpioDelay(20); 
+		gpioDelay(23); 
+		
+		gpioWrite(WR, 0);
+		gpioDelay(150);
+		gpioWrite(WR, 1);
+
+		gpioDelay(26);
+		gpioWrite(CS, 1);
+		gpioWrite(RSO, 0);
+
+
+
+
 
 		int state0 = gpioRead(D0);
 		int state1 = gpioRead(D1);
