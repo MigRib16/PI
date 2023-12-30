@@ -101,6 +101,20 @@ void StateIRQ() {
 	int stateIRQ = gpioRead(IRQ);
 	printf("Temos: IRQ = %d\n", stateIRQ); }
 
+void ReseTone() {
+
+	gpioWrite(RSO, 0);		// Write 0000 on Transmit Data 
+
+	gpioWrite(D0, 0);
+	gpioWrite(D1, 0);
+	gpioWrite(D2, 0);
+	gpioWrite(D3, 0);
+
+	gpioDelay(50000); 
+	gpioWrite(RD, 1);
+	gpioWrite(WR, 0);
+	gpioDelay(50000); }
+
 int main(){
 	int escolha;
 	int num;
@@ -124,6 +138,8 @@ int main(){
 	gpioSetMode(IRQ, PI_INPUT);
 
 	Inicialization();
+
+	ReseTone();
 
 	while(1)
 	{
@@ -173,11 +189,7 @@ int main(){
 		gpioWrite(RD, 1);
 		gpioWrite(WR, 0);
 		StateIRQ();	
-		gpioDelay(500000);
-
-		//DataBusRD();
-		StateIRQ();	
-		gpioDelay(50000); } 
+		gpioDelay(500000); } 
 
 		printf("Você ligou para o número %d %d %d %d\n", dtmf[1], dtmf[2], dtmf[3], dtmf[4]);
 	 }
