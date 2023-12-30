@@ -59,6 +59,7 @@
   "files.associations": {
     "fftw3.h": "c",
     "abe_adcdacpi.h": "c",
-    "stdio.h": "c"
+    "stdio.h": "c",
+    "stdlib.h": "c"
   }
 }
