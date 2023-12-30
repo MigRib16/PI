@@ -109,6 +109,9 @@ int main(int argc, char **argv){
 
     printf("Max value: %f e max index: %d\n",maxValue,maxIndex);
 
+    double freq = frequencies[maxIndex];
+    printf("Sinal detetado com Frquência: %f\n", freq);
+
     // // Imprimir o sinal no domínio do tempo
     // printf("Sinal no Domínio do Tempo:\n");
     // for (int i = 0; i < NUM_SAMPLES; i++) {

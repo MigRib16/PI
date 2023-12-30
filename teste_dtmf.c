@@ -22,22 +22,6 @@
 #define CS 14
 #define IRQ 5
 
-int Spam(int num) {
-
-	int binary[4];
-
-	if(num == 0) 
-			num = 10;
-
-		if(num > 0) {
-			for(int i = 0; i < 4; i++)   {    
-				binary[i] = num % 2;    
-				num =  num / 2;  }  }
-	
-	printf("O DTMF enviado foi %d %d %d %d\n", binary[3], binary[2], binary[1], binary[0]);
-
-	return binary[4]; }
-
 void readStatus() {
 
 	gpioWrite(RSO, 1);		//Read Status
@@ -57,32 +41,20 @@ void Inicialization() {
 	gpioWrite(D2, 0);
 	gpioWrite(D3, 0);
 
-	gpioWrite(WR, 0);		// CRA: Ler 0000
+	gpioWrite(WR, 0);		// CRA: Escrever 0000
 	gpioWrite(RD, 1);
 	gpioDelay(500);
 
-	gpioWrite(WR, 1);	
-	gpioWrite(RD, 0);
-	gpioDelay(500);
-
-	gpioWrite(WR, 0);		// CRA: Ler 0000
+	gpioWrite(WR, 0);		// CRA: Escrever 0000
 	gpioWrite(RD, 1);
-	gpioDelay(500);
-
-	gpioWrite(WR, 1);	
-	gpioWrite(RD, 0);
 	gpioDelay(500);
 
 	gpioWrite(D3, 1);
-	gpioWrite(WR, 0);		// CRA: Ler 1000 To Change To CRB
+	gpioWrite(WR, 0);		// CRA: Escrever 1000 To Change To CRB
 	gpioWrite(RD, 1);
 	gpioDelay(500);
 
-	gpioWrite(WR, 1);	
-	gpioWrite(RD, 0);
-	gpioDelay(500);
-
-	gpioWrite(D3, 0);		// CRB: Ler 0000
+	gpioWrite(D3, 0);		// CRB: Escrever 0000
 	gpioWrite(WR, 0);	
 	gpioWrite(RD, 1);
 	gpioDelay(500);
@@ -91,6 +63,33 @@ void Inicialization() {
 
 	return; }
 
+void SetMode() {
+	gpioDelay(50000);
+
+	gpioWrite(RSO, 1);			// Write to Control A '1101'
+
+	gpioWrite(D0, 1);
+	gpioWrite(D1, 0);
+	gpioWrite(D2, 1);
+	gpioWrite(D3, 1);
+
+	gpioWrite(RD, 1);
+	gpioWrite(WR, 0);
+	gpioDelay(50000);
+
+	gpioWrite(RSO, 1);			// Write to Control B '0000'
+
+	gpioWrite(D0, 0);
+	gpioWrite(D1, 0);
+	gpioWrite(D2, 0);
+	gpioWrite(D3, 0);
+
+	gpioWrite(RD, 1);			
+	gpioWrite(WR, 0);
+	gpioDelay(50000);
+
+}
+
 void DataBusRD() {
 	int state0 = gpioRead(D0);
 	int state1 = gpioRead(D1);
@@ -98,12 +97,9 @@ void DataBusRD() {
 	int state3 = gpioRead(D3);
 	printf("O DTMF recebido foi %d %d %d %d\n", state3, state2, state1, state0); }
 
-void StateRD() {
-	int stateRSO = gpioRead(RSO);
-	int stateWR = gpioRead(WR);
-	int stateRD = gpioRead(RD);
+void StateIRQ() {
 	int stateIRQ = gpioRead(IRQ);
-	printf("Temos: RSO = %d, WR = %d, RD = %d, IRQ = %d\n", stateRSO, stateWR, stateRD, stateIRQ); }
+	printf("Temos: IRQ = %d\n", stateIRQ); }
 
 int main(){
 	int escolha;
@@ -139,10 +135,10 @@ int main(){
 	if (escolha==2)
 		break;
 	
-	int number[4];
-	int dtmf[4];
+	int number[5];
+	int dtmf[5];
 
-	for(int k = 0; k < 4; k++) {
+	for(int k = 0; k < 5; k++) {
 
 		printf("Que Dígito que marcar?: ");
 		scanf("%d", &num);
@@ -161,37 +157,9 @@ int main(){
 				binary[i] = number[k] % 2;    
 				number[k] =  number[k] / 2;  }  }
 
-		gpioDelay(500);
+		SetMode();
 
-		gpioWrite(RSO, 1);			// Write to Control A '1101'
-
-		gpioWrite(D0, 1);
-		gpioWrite(D1, 0);
-		gpioWrite(D2, 1);
-		gpioWrite(D3, 1);
-
-		gpioWrite(RD, 1);
-		gpioWrite(WR, 0);
-		gpioDelay(500);
-
-		gpioWrite(WR, 1);	
-		gpioWrite(RD, 0);
-		gpioDelay(500);
-
-		gpioWrite(RSO, 1);			// Write to Control B '0000'
-
-		gpioWrite(D0, 0);
-		gpioWrite(D1, 0);
-		gpioWrite(D2, 0);
-		gpioWrite(D3, 0);
-
-		gpioWrite(RD, 1);			
-		gpioWrite(WR, 0);
-		gpioDelay(500);
-
-		gpioWrite(WR, 1);	
-		gpioWrite(RD, 0);
-		gpioDelay(500);
+		gpioDelay(50000);
 
 		gpioWrite(RSO, 0);			// Write to Transmit Data Register 'INPUT'
 
@@ -199,19 +167,20 @@ int main(){
 		gpioWrite(D1, binary[1]);
 		gpioWrite(D2, binary[2]);
 		gpioWrite(D3, binary[3]);
+		StateIRQ();	
 
-		gpioDelay(500); 
+		gpioDelay(50000); 
 		gpioWrite(RD, 1);
 		gpioWrite(WR, 0);
-		gpioDelay(500);
+		StateIRQ();	
+		gpioDelay(500000);
 
-		gpioDelay(50000);
-
-		DataBusRD();
-		StateRD();	
+		//DataBusRD();
+		StateIRQ();	
 		gpioDelay(50000); } 
 
-	printf("Você ligou para o número %d %d %d %d\n", dtmf[0], dtmf[1], dtmf[2], dtmf[3]); }
+		printf("Você ligou para o número %d %d %d %d\n", dtmf[1], dtmf[2], dtmf[3], dtmf[4]);
+	 }
 
 	gpioTerminate();
 
