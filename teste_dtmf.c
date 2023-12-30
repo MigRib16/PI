@@ -24,11 +24,13 @@
 
 void readStatus() {
 
+	gpioDelay(50000); 	
 	gpioWrite(RSO, 1);		//Read Status
 	gpioWrite(RD, 0);	
 	gpioWrite(WR, 1);
+	gpioDelay(50000); 	
 
-	int stateIRQ = gpioRead(D0);
+	int stateIRQ = gpioRead(IRQ);
 	printf("Temos: IRQ = %d\n", stateIRQ);
 
 	return; }
@@ -137,7 +139,6 @@ int main(){
 	gpioSetMode(RD, PI_OUTPUT);
 	gpioSetMode(WR, PI_OUTPUT);
 	gpioSetMode(RSO, PI_OUTPUT);
-	gpioSetMode(CS, PI_OUTPUT);
 	gpioSetMode(IRQ, PI_INPUT);
 
 	Inicialization();
@@ -148,11 +149,11 @@ int main(){
 	{
 	//define state of input
 	
-    printf("Quer enviar um tom DTMF? Enviar(1) Terminar(2)\n");
-	scanf("%d", &escolha);
+    //printf("Quer enviar um tom DTMF? Enviar(1) Terminar(2)\n");
+	//scanf("%d", &escolha);
 	
-	if (escolha==2)
-		break;
+	//if (escolha==2)
+	//	break;
 	
 	int number[5];
 	int dtmf[5];
@@ -186,16 +187,11 @@ int main(){
 		gpioWrite(D1, binary[1]);
 		gpioWrite(D2, binary[2]);
 		gpioWrite(D3, binary[3]);
-		StateIRQ();	
 
 		gpioDelay(50000); 
 		gpioWrite(RD, 1);
 		gpioWrite(WR, 0);
-
-		//readStatus();
-		//gpioDelay(5000);
-		//StateIRQ();	
-		gpioDelay(500000); } 
+		gpioDelay(50000); } 
 
 		printf("Você ligou para o número %d %d %d %d\n", dtmf[1], dtmf[2], dtmf[3], dtmf[4]);
 	 }
