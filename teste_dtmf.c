@@ -28,6 +28,9 @@ void readStatus() {
 	gpioWrite(RD, 0);	
 	gpioWrite(WR, 1);
 
+	int stateIRQ = gpioRead(D0);
+	printf("Temos: IRQ = %d\n", stateIRQ);
+
 	return; }
 
 void Inicialization() {
@@ -188,7 +191,10 @@ int main(){
 		gpioDelay(50000); 
 		gpioWrite(RD, 1);
 		gpioWrite(WR, 0);
-		StateIRQ();	
+
+		//readStatus();
+		//gpioDelay(5000);
+		//StateIRQ();	
 		gpioDelay(500000); } 
 
 		printf("Você ligou para o número %d %d %d %d\n", dtmf[1], dtmf[2], dtmf[3], dtmf[4]);
