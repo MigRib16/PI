@@ -206,7 +206,7 @@ int main(){
 
 	SetMode();
 
-	ReseTone();
+	//ReseTone();
 
 	//while(1)
 	//{
