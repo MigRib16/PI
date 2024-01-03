@@ -13,7 +13,7 @@
 #include <math.h>
 
 #define D3 25
-#define D2 24
+#define D2 6
 #define D1 23
 #define D0 3
 
@@ -208,33 +208,11 @@ int main(){
 
 	ReseTone();
 
-	while(1)
-	{
+	//while(1)
+	//{
 	//define state of input
 
-	gpioWrite(RSO, 0);		// Write 0000 on Transmit Data  
-	gpioDelay(50000);
-
-	Reset();
-
-	gpioWrite(D0, 0);
-	gpioWrite(D1, 1);
-	gpioWrite(D2, 1);
-	gpioWrite(D3, 0);
-	gpioDelay(5000);
-
-	gpioWrite(RD, 1);
-	gpioWrite(WR, 0);
-	gpioDelay(500000);
-
-	DataBusRD();
-	Print_RSO();
-	Reset();
-
-	readStatus(); 
-	Print_RSO();
-
-	gpioWrite(RSO, 0);		// Write 0000 on Transmit Data  
+	gpioWrite(RSO, 0);		// Write 0001 on Transmit Data  
 	gpioDelay(50000);
 
 	gpioWrite(D0, 1);
@@ -251,7 +229,67 @@ int main(){
 	Reset();  
 	
 	readStatus(); 
-	}
+
+	gpioWrite(RSO, 0);		// Write 1010 on Transmit Data  
+	gpioDelay(50000);
+
+	Reset();
+
+	gpioWrite(D0, 0);
+	gpioWrite(D1, 1);
+	gpioWrite(D2, 0);
+	gpioWrite(D3, 1);
+	gpioDelay(5000);
+
+	gpioWrite(RD, 1);
+	gpioWrite(WR, 0);
+	gpioDelay(500000);
+
+	DataBusRD();
+	Reset();
+
+	readStatus(); 
+
+	gpioWrite(RSO, 0);		// Write 1010 on Transmit Data  
+	gpioDelay(50000);
+
+	Reset();
+
+	gpioWrite(D0, 0);
+	gpioWrite(D1, 1);
+	gpioWrite(D2, 0);
+	gpioWrite(D3, 1);
+	gpioDelay(5000);
+
+	gpioWrite(RD, 1);
+	gpioWrite(WR, 0);
+	gpioDelay(500000);
+
+	DataBusRD();
+	Reset();
+
+	readStatus(); 
+
+	gpioWrite(RSO, 0);		// Write 1010 on Transmit Data  
+	gpioDelay(50000);
+
+	Reset();
+
+	gpioWrite(D0, 0);
+	gpioWrite(D1, 1);
+	gpioWrite(D2, 0);
+	gpioWrite(D3, 1);
+	gpioDelay(5000);
+
+	gpioWrite(RD, 1);
+	gpioWrite(WR, 0);
+	gpioDelay(500000);
+
+	DataBusRD();
+	Reset();
+
+	readStatus(); 
+	//}
 
 	gpioTerminate();
 
