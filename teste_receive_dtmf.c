@@ -13,7 +13,7 @@
 #include <math.h>
 
 #define D3 25
-#define D2 6
+#define D2 24
 #define D1 23
 #define D0 3
 
@@ -24,6 +24,37 @@
 
 #define LRC 17
 #define LRD 18
+
+void Rele() {
+	int escolha;
+	while(1)
+	{
+	//define state of input
+	
+	printf("Efetuar off-hook? Sim(1), Não(0), Terminar(2)\n");
+	scanf("%d", &escolha);
+	
+	if (escolha==2)
+		break;
+		
+	gpioWrite(LRC, escolha);  // 0 = OnHook | 1 = OffHook
+	
+	gpioDelay(1000000);
+	int state = gpioRead(LRD);
+	
+	if(state == 1)
+	{
+		printf("Pino SHK em nivel baixo e estado on-hook\n");
+	}
+	
+	else 
+	{
+		printf("Pino SHK em nivel alto e estado off-hook\n");
+	}
+	
+	gpioDelay(500000);
+	}
+}
 
 void Reset() {
 	gpioWrite(RD, 1);	
@@ -131,7 +162,7 @@ void SetMode() {
 	High_RSO();
 
 	gpioWrite(RSO, 1);			// Write to Control A '1101'
-	gpioDelay(5000);
+	gpioDelay(50000);
 	Reset();
 
 	gpioWrite(D0, 1);
@@ -147,7 +178,7 @@ void SetMode() {
 	Reset();
 
 	gpioWrite(RSO, 1);			// Write to Control B '0000'
-	gpioDelay(5000);
+	gpioDelay(50000);
 
 	gpioWrite(D0, 0);
 	gpioWrite(D1, 0);
@@ -185,7 +216,6 @@ void ReseTone() {
 }
 
 int main(){
-	int escolha;
 	int num;
 	
 	if(gpioInitialise() < 1)
@@ -208,33 +238,7 @@ int main(){
 	gpioSetMode(RSO, PI_OUTPUT);
 	gpioSetMode(IRQ, PI_INPUT);
 
-	while(1)
-	{
-	//define state of input
-	
-	printf("Efetuar off-hook? Sim(1), Não(0), Terminar(2)\n");
-	scanf("%d", &escolha);
-	
-	if (escolha==2)
-		break;
-		
-	gpioWrite(LRC, escolha);  // 0 = OnHook | 1 = OffHook
-	
-	gpioDelay(1000000);
-	int state = gpioRead(LRD);
-	
-	if(state == 1)
-	{
-		printf("Pino SHK em nivel baixo e estado on-hook\n");
-	}
-	
-	else 
-	{
-		printf("Pino SHK em nivel alto e estado off-hook\n");
-	}
-	
-	gpioDelay(500000);
-	}
+	//Rele();
 
 	Inicialization();
 
@@ -242,8 +246,8 @@ int main(){
 
 	//ReseTone();
 
-	//while(1)
-	//{
+	while(1)
+	{
 	//define state of input
 
 	gpioWrite(RSO, 0);		// Write 0001 on Transmit Data  
@@ -260,6 +264,7 @@ int main(){
 	gpioDelay(500000);
 
 	DataBusRD();
+	
 	Reset();  
 	
 	readStatus(); 
@@ -323,7 +328,7 @@ int main(){
 	Reset();
 
 	readStatus(); 
-	//}
+	}
 
 	gpioTerminate();
 
