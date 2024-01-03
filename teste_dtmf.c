@@ -13,14 +13,13 @@
 #include <math.h>
 
 #define D3 25
-#define D2 2
+#define D2 24
 #define D1 23
 #define D0 3
 
 #define RD 15
 #define WR 0
 #define RSO 1
-#define IRQ 5
 
 void DataBusRD() {
 	int state0 = gpioRead(D0);
@@ -32,22 +31,20 @@ void DataBusRD() {
 void Reset() {
 	gpioWrite(RD, 1);	
 	gpioWrite(WR, 1);
-	gpioDelay(5000); 
+	gpioDelay(50000); 
 }
 
 void readStatus() {
 
 	gpioWrite(RSO, 1);		//Read Status
+	gpioDelay(50000); 
 	Reset();
 
 	gpioWrite(RD, 0);	
 	gpioWrite(WR, 1);
-	gpioDelay(500); 
+	gpioDelay(50000); 
 
 	Reset();	
-
-	int stateIRQ = gpioRead(IRQ);
-	printf("Temos: IRQ = %d\n", stateIRQ);
 
 	return; }
 
@@ -68,13 +65,13 @@ void Inicialization() {
 
 	gpioWrite(WR, 0);		// CRA: Escrever 0000
 	gpioWrite(RD, 1);
-	gpioDelay(5000);
+	gpioDelay(50000);
 
 	Reset();
 
 	gpioWrite(WR, 0);		// CRA: Escrever 0000
 	gpioWrite(RD, 1);
-	gpioDelay(5000);
+	gpioDelay(50000);
 
 	Reset();
 
@@ -83,7 +80,7 @@ void Inicialization() {
 	
 	gpioWrite(WR, 0);		// CRA: Escrever 1000 To Change To CRB
 	gpioWrite(RD, 1);
-	gpioDelay(5000);
+	gpioDelay(50000);
 
 	Reset(); 
 
@@ -92,7 +89,7 @@ void Inicialization() {
 
 	gpioWrite(WR, 0);	
 	gpioWrite(RD, 1);
-	gpioDelay(5000);
+	gpioDelay(50000);
 
 	Reset();
 
@@ -102,10 +99,8 @@ void Inicialization() {
 
 void SetMode() {
 
-	gpioDelay(5000);
-
 	gpioWrite(RSO, 1);			// Write to Control A '1101'
-	gpioDelay(5000);
+	gpioDelay(50000);
 	Reset();
 
 	gpioWrite(D0, 1);
@@ -116,12 +111,12 @@ void SetMode() {
 
 	gpioWrite(RD, 1);
 	gpioWrite(WR, 0);
-	gpioDelay(5000);
+	gpioDelay(50000);
 
 	Reset();
 
 	gpioWrite(RSO, 1);			// Write to Control B '0000'
-	gpioDelay(5000);
+	gpioDelay(50000);
 
 	gpioWrite(D0, 0);
 	gpioWrite(D1, 0);
@@ -131,29 +126,28 @@ void SetMode() {
 
 	gpioWrite(RD, 1);			
 	gpioWrite(WR, 0);
-	gpioDelay(5000);
+	gpioDelay(50000);
 
 	Reset();
 
 }
 
-void StateIRQ() {
-	int stateIRQ = gpioRead(IRQ);
-	printf("Temos: IRQ = %d\n", stateIRQ); }
-
 void ReseTone() {
 
 	gpioWrite(RSO, 0);		// Write 0000 on Transmit Data 
+	gpioDelay(5000);
 
 	gpioWrite(D0, 0);
 	gpioWrite(D1, 0);
 	gpioWrite(D2, 0);
 	gpioWrite(D3, 0);
+	gpioDelay(5000);
 
-	//gpioDelay(500); 
 	gpioWrite(RD, 1);
 	gpioWrite(WR, 0);
-	gpioDelay(500); }
+	gpioDelay(50000);
+	
+	Reset(); }
 
 void ReadOut() {
 
@@ -196,7 +190,9 @@ int main(){
 	gpioSetMode(RD, PI_OUTPUT);
 	gpioSetMode(WR, PI_OUTPUT);
 	gpioSetMode(RSO, PI_OUTPUT);
-	gpioSetMode(IRQ, PI_INPUT);
+
+	gpioWrite(RSO, 1);		//Read Status
+	gpioDelay(50000);
 
 	Inicialization();
 
@@ -235,22 +231,24 @@ int main(){
 
 		printf("O DTMF recebido foi %d %d %d %d\n", binary[3], binary[2], binary[1], binary[0]); 
 
-		SetMode();
-
-		gpioDelay(100000); 
+		gpioDelay(10000); 
 		gpioWrite(RSO, 0);			// Write to Transmit Data Register 'INPUT'
-		gpioDelay(500); 
+		gpioDelay(50000); 
 
 		gpioWrite(D0, binary[0]);
 		gpioWrite(D1, binary[1]);
 		gpioWrite(D2, binary[2]);
 		gpioWrite(D3, binary[3]);
-
 		gpioDelay(5000); 
+
 		gpioWrite(RD, 1);
 		gpioWrite(WR, 0);
 		gpioDelay(50000); 
 		DataBusRD();
+
+		Reset();  
+	
+		readStatus(); 
 	
 		} 
 

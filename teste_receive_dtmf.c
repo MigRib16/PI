@@ -25,8 +25,36 @@
 void Reset() {
 	gpioWrite(RD, 1);	
 	gpioWrite(WR, 1);
-	gpioDelay(5000); 
+	gpioDelay(50000); 
 }
+
+void Print_RSO() {
+	int stateRSO = gpioRead(RSO);
+	printf("O RSO está a %d \n", stateRSO);
+}
+
+void High_RSO() {
+
+	int stateRSO = gpioRead(RSO);
+	Print_RSO();
+
+	while(stateRSO == 0) {
+		gpioWrite(RSO, 1);
+		gpioDelay(5000);
+		Print_RSO();
+		break; }
+
+	return;
+}
+
+void DataBusRD() {
+	int state0 = gpioRead(D0);
+	int state1 = gpioRead(D1);
+	int state2 = gpioRead(D2);
+	int state3 = gpioRead(D3);
+	int stateIRQ = gpioRead(IRQ);
+	//printf("Temos: IRQ = %d\n", stateIRQ);
+	printf("O DTMF recebido foi %d %d %d %d\n", state3, state2, state1, state0); }
 
 void readStatus() {
 
@@ -34,10 +62,8 @@ void readStatus() {
 	Reset();
 
 	gpioWrite(RD, 0);	
-
-	int stateIRQ = gpioRead(IRQ);
-	printf("Temos: IRQ = %d\n", stateIRQ);
-	gpioDelay(500);
+	gpioWrite(WR, 1);
+	gpioDelay(50000); 
 
 	Reset();	
 
@@ -47,44 +73,48 @@ void Inicialization() {
 
 	gpioDelay(100000);
 
-	readStatus();
+	High_RSO();
 
+	readStatus();
+	// Write to Control Register -> CRA -> WR 0 0 0 0 -> CRA -> WR 1 0 0 0 -> Change to CRB -> CRB -> WR 0 0 0 0
+	
 	Reset();
 
-	// Write to Control Register -> CRA -> WR 0 0 0 0 -> CRA -> WR 1 0 0 0 -> Change to CRB -> CRB -> WR 0 0 0 0
 	gpioWrite(D0, 0);
 	gpioWrite(D1, 0);
 	gpioWrite(D2, 0);
 	gpioWrite(D3, 0);
-	gpioDelay(500);
+	gpioDelay(5000);
 
 	gpioWrite(WR, 0);		// CRA: Escrever 0000
 	gpioWrite(RD, 1);
-	gpioDelay(5000);
+	gpioDelay(50000);
 
 	Reset();
 
 	gpioWrite(WR, 0);		// CRA: Escrever 0000
 	gpioWrite(RD, 1);
-	gpioDelay(5000);
+	gpioDelay(50000);
 
 	Reset();
+	gpioDelay(50000); 
 
 	gpioWrite(D3, 1);
-	gpioDelay(500);
-
+	gpioDelay(5000);
+	
 	gpioWrite(WR, 0);		// CRA: Escrever 1000 To Change To CRB
 	gpioWrite(RD, 1);
-	gpioDelay(5000);
+	gpioDelay(50000);
 
-	Reset();
+	Reset(); 
+	gpioDelay(50000); 
 
 	gpioWrite(D3, 0);		// CRB: Escrever 0000
-	gpioDelay(500);
+	gpioDelay(5000);
 
 	gpioWrite(WR, 0);	
 	gpioWrite(RD, 1);
-	gpioDelay(5000);
+	gpioDelay(50000);
 
 	Reset();
 
@@ -94,32 +124,61 @@ void Inicialization() {
 
 void SetMode() {
 
+	gpioDelay(5000);
+	High_RSO();
+
 	gpioWrite(RSO, 1);			// Write to Control A '1101'
+	gpioDelay(5000);
 	Reset();
 
 	gpioWrite(D0, 1);
 	gpioWrite(D1, 0);
 	gpioWrite(D2, 1);
 	gpioWrite(D3, 1);
+	gpioDelay(5000);
 
 	gpioWrite(RD, 1);
 	gpioWrite(WR, 0);
-	gpioDelay(5000);
+	gpioDelay(50000);
 
-	//gpioWrite(RSO, 1);			// Write to Control B '0000'
 	Reset();
 
-	gpioWrite(D0, 1);
+	gpioWrite(RSO, 1);			// Write to Control B '0000'
+	gpioDelay(5000);
+
+	gpioWrite(D0, 0);
 	gpioWrite(D1, 0);
 	gpioWrite(D2, 0);
 	gpioWrite(D3, 0);
+	gpioDelay(5000);
 
 	gpioWrite(RD, 1);			
 	gpioWrite(WR, 0);
-	gpioDelay(5000);
+	gpioDelay(50000);
 
 	Reset();
 
+}
+
+void ReseTone() {
+
+	gpioWrite(RSO, 0);		// Write 0000 on Transmit Data 
+	gpioDelay(5000);
+
+	Print_RSO();
+
+	gpioWrite(D0, 0);
+	gpioWrite(D1, 0);
+	gpioWrite(D2, 0);
+	gpioWrite(D3, 0);
+	gpioDelay(5000);
+
+	gpioWrite(RD, 1);
+	gpioWrite(WR, 0);
+	gpioDelay(50000); 
+
+	Reset();
+	
 }
 
 int main(){
@@ -147,25 +206,52 @@ int main(){
 
 	SetMode();
 
+	ReseTone();
+
 	while(1)
 	{
 	//define state of input
 
 	gpioWrite(RSO, 0);		// Write 0000 on Transmit Data  
-	gpioDelay(5000);
+	gpioDelay(50000);
+
 	Reset();
 
 	gpioWrite(D0, 0);
 	gpioWrite(D1, 1);
-	gpioWrite(D2, 0);
-	gpioWrite(D3, 1);
-	gpioDelay(500);
+	gpioWrite(D2, 1);
+	gpioWrite(D3, 0);
+	gpioDelay(5000);
 
 	gpioWrite(RD, 1);
 	gpioWrite(WR, 0);
+	gpioDelay(500000);
+
+	DataBusRD();
+	Print_RSO();
+	Reset();
+
+	readStatus(); 
+	Print_RSO();
+
+	gpioWrite(RSO, 0);		// Write 0000 on Transmit Data  
 	gpioDelay(50000);
 
-	Reset(); }
+	gpioWrite(D0, 1);
+	gpioWrite(D1, 0);
+	gpioWrite(D2, 0);
+	gpioWrite(D3, 0);
+	gpioDelay(5000);
+
+	gpioWrite(RD, 1);
+	gpioWrite(WR, 0);
+	gpioDelay(500000);
+
+	DataBusRD();
+	Reset();  
+	
+	readStatus(); 
+	}
 
 	gpioTerminate();
 
