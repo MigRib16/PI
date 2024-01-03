@@ -3,7 +3,7 @@
  *
  *  Created on: 27 Dec 2023
  *
- *      compile with "gcc -o teste_receive_dtmf teste_receive_dtmf.c -lpigpio -lrt -lpthread"
+ *      compile with "gcc -o teste_receive_dtmf teste_receive_dtmf.c -lpigpio -lrt -lpthread -lm"
  *      run with "sudo ./teste_receive_dtmf"
  */
 
@@ -15,60 +15,112 @@
 #define D3 25
 #define D2 24
 #define D1 23
-#define D0 4
+#define D0 3
 
 #define RD 15
 #define WR 0
 #define RSO 1
-#define CS 14
 #define IRQ 5
+
+void Reset() {
+	gpioWrite(RD, 1);	
+	gpioWrite(WR, 1);
+	gpioDelay(5000); 
+}
+
+void readStatus() {
+
+	gpioWrite(RSO, 1);		//Read Status
+	Reset();
+
+	gpioWrite(RD, 0);	
+
+	int stateIRQ = gpioRead(IRQ);
+	printf("Temos: IRQ = %d\n", stateIRQ);
+	gpioDelay(500);
+
+	Reset();	
+
+	return; }
 
 void Inicialization() {
 
 	gpioDelay(100000);
 
 	readStatus();
+
+	Reset();
+
 	// Write to Control Register -> CRA -> WR 0 0 0 0 -> CRA -> WR 1 0 0 0 -> Change to CRB -> CRB -> WR 0 0 0 0
 	gpioWrite(D0, 0);
 	gpioWrite(D1, 0);
 	gpioWrite(D2, 0);
 	gpioWrite(D3, 0);
-
-	gpioWrite(WR, 0);		// CRA: Escrever 0000
-	gpioWrite(RD, 1);
 	gpioDelay(500);
 
 	gpioWrite(WR, 0);		// CRA: Escrever 0000
 	gpioWrite(RD, 1);
-	gpioDelay(500);
+	gpioDelay(5000);
+
+	Reset();
+
+	gpioWrite(WR, 0);		// CRA: Escrever 0000
+	gpioWrite(RD, 1);
+	gpioDelay(5000);
+
+	Reset();
 
 	gpioWrite(D3, 1);
-	gpioWrite(WR, 0);		// CRA: Escrever 1000 To Change To CRB
-	gpioWrite(RD, 1);
 	gpioDelay(500);
 
+	gpioWrite(WR, 0);		// CRA: Escrever 1000 To Change To CRB
+	gpioWrite(RD, 1);
+	gpioDelay(5000);
+
+	Reset();
+
 	gpioWrite(D3, 0);		// CRB: Escrever 0000
+	gpioDelay(500);
+
 	gpioWrite(WR, 0);	
 	gpioWrite(RD, 1);
-	gpioDelay(500);
+	gpioDelay(5000);
+
+	Reset();
 
 	readStatus();
 
 	return; }
 
-void ReseTone() {
+void SetMode() {
 
-	gpioWrite(RSO, 0);		// Write 0000 on Transmit Data 
+	gpioWrite(RSO, 1);			// Write to Control A '1101'
+	Reset();
 
-	gpioWrite(D0, 0);
+	gpioWrite(D0, 1);
+	gpioWrite(D1, 0);
+	gpioWrite(D2, 1);
+	gpioWrite(D3, 1);
+
+	gpioWrite(RD, 1);
+	gpioWrite(WR, 0);
+	gpioDelay(5000);
+
+	//gpioWrite(RSO, 1);			// Write to Control B '0000'
+	Reset();
+
+	gpioWrite(D0, 1);
 	gpioWrite(D1, 0);
 	gpioWrite(D2, 0);
 	gpioWrite(D3, 0);
 
-	gpioDelay(50000); 
-	gpioWrite(RD, 1);
+	gpioWrite(RD, 1);			
 	gpioWrite(WR, 0);
-	gpioDelay(50000); }
+	gpioDelay(5000);
+
+	Reset();
+
+}
 
 int main(){
 	int escolha;
@@ -93,31 +145,27 @@ int main(){
 
 	Inicialization();
 
-	ReseTone();
+	SetMode();
 
 	while(1)
 	{
 	//define state of input
-    int number, resto;
-    int decimal = 0, expoente = 0;
-    int binario[4]; 
 
-    gpioWrite(RSO, 0);		// Read on Receive Data Register
-    gpioDelay(5000); 
-	gpioWrite(RD, 0);
-	gpioWrite(WR, 1);
+	gpioWrite(RSO, 0);		// Write 0000 on Transmit Data  
 	gpioDelay(5000);
+	Reset();
 
-    binario[0] = gpioRead(D0);
-	binario[1] = gpioRead(D1);
-	binario[2] = gpioRead(D2);
-	binario[3] = gpioRead(D3);
+	gpioWrite(D0, 0);
+	gpioWrite(D1, 1);
+	gpioWrite(D2, 0);
+	gpioWrite(D3, 1);
+	gpioDelay(500);
 
-    for (int i = 0; i < 4; ++i) {
-        decimal += binario[i] * pow(2, 4 - 1 - i);
-    }
+	gpioWrite(RD, 1);
+	gpioWrite(WR, 0);
+	gpioDelay(50000);
 
-	printf("Você recebeu o tom %d\n", decimal); }
+	Reset(); }
 
 	gpioTerminate();
 
