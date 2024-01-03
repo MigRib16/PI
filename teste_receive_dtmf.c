@@ -25,7 +25,7 @@
 #define LRC 17
 #define LRD 18
 
-void Rele() {
+void colocar_off_hook() {
 	int escolha;
 	while(1)
 	{
@@ -238,7 +238,7 @@ int main(){
 	gpioSetMode(RSO, PI_OUTPUT);
 	gpioSetMode(IRQ, PI_INPUT);
 
-	//Rele();
+	//colocar_off_hook()
 
 	Inicialization();
 
