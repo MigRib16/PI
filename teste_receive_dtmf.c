@@ -22,6 +22,9 @@
 #define RSO 1
 #define IRQ 5
 
+#define LRC 17
+#define LRD 18
+
 void Reset() {
 	gpioWrite(RD, 1);	
 	gpioWrite(WR, 1);
@@ -192,6 +195,9 @@ int main(){
 		}
 		
 	//define inputs outputs
+	gpioSetMode(LRC, PI_OUTPUT);
+	gpioSetMode(LRD, PI_INPUT);
+
 	gpioSetMode(D3, PI_OUTPUT);
 	gpioSetMode(D2, PI_OUTPUT);
 	gpioSetMode(D1, PI_OUTPUT);
@@ -201,6 +207,34 @@ int main(){
 	gpioSetMode(WR, PI_OUTPUT);
 	gpioSetMode(RSO, PI_OUTPUT);
 	gpioSetMode(IRQ, PI_INPUT);
+
+	while(1)
+	{
+	//define state of input
+	
+	printf("Efetuar off-hook? Sim(1), Não(0), Terminar(2)\n");
+	scanf("%d", &escolha);
+	
+	if (escolha==2)
+		break;
+		
+	gpioWrite(LRC, escolha);  // 0 = OnHook | 1 = OffHook
+	
+	gpioDelay(1000000);
+	int state = gpioRead(LRD);
+	
+	if(state == 1)
+	{
+		printf("Pino SHK em nivel baixo e estado on-hook\n");
+	}
+	
+	else 
+	{
+		printf("Pino SHK em nivel alto e estado off-hook\n");
+	}
+	
+	gpioDelay(500000);
+	}
 
 	Inicialization();
 
