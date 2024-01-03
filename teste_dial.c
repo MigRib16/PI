@@ -99,7 +99,10 @@ int main(int argc, char **argv){
 
 	// Calcule a magnitude do espectro
     
-    
+    FILE *f = fopen("magnitude.txt", "wb");
+    fwrite(magnitude, sizeof(char), sizeof(magnitude), f);
+    fclose(f);
+
     double maxValue;
     int maxIndex;
     int aux;
