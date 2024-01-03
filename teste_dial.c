@@ -108,7 +108,7 @@ int main(int argc, char **argv){
     double maxValue;
     int maxIndex;
     int aux;
-    findMax(magnitude, size, &maxValue, &maxIndex);
+    findMax(magnitude, size/2, &maxValue, &maxIndex);
 
 
 
