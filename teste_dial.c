@@ -39,6 +39,10 @@ void findMax(const double *array, int size, double *maxValue, int *maxIndex){
 void performFFT(double *input, double complex *output, int size) {
     fftw_plan plan = fftw_plan_r2r_1d(size, input, (fftw_complex *)output, FFTW_R2HC, FFTW_ESTIMATE);
     fftw_execute(plan);
+    for (int i = 0; i < N; ++i) {
+        output[i] /= sqrt(2.0 * size);
+    }
+    
     fftw_destroy_plan(plan);
 }
 
