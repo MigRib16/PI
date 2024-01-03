@@ -11,7 +11,7 @@
 
 #define LRC 17
 #define LRD 18
-#define RV 2
+#define RV 5
 #define numberofsamples 200000 //Aproximadamente 200 seg
 
 void performFFT(double *input, double *output, int size) {
@@ -25,14 +25,12 @@ void colocar_off_hook(){
 	gpioSetMode(LRD, PI_INPUT);
    
    int escolha;
-    while(1)
+    do
 	{
 	    //define state of input
-	    printf("Efetuar off-hook? Sim(1), Não(0), Terminar(2)\n");
+	    printf("Efetuar off-hook? Sim(1), Não(0\n");
+	   
 	    scanf("%d", &escolha);
-	
-	    if (escolha==2)
-		    return EXIT_SUCCESS;
 		
 	    gpioWrite(LRC, escolha);  // 1 = OnHook | 0 = OffHook
 	
@@ -50,7 +48,7 @@ void colocar_off_hook(){
              break;
 	    }
 	
-	}
+	}while(state != 0);
 }
 
 void clearscreen ()
@@ -62,14 +60,14 @@ void verificar_RV(){
     gpioSetMode(RV, PI_INPUT);
     int state = gpioRead(RV);
 	
-    while(1){
+    do{
 	    if(state == 0)
 	    {
 		    printf("Ringing Voltage detetado\n");
             gpioDelay(7000000);
             break;
 	    }
-    }
+    }while(state!=0);
 }
 
 void verificar_dial_tone(){
