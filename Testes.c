@@ -6,6 +6,7 @@
 #include <pigpio.h>
 #include <complex.h>
 #include <fftw3.h>
+#include <math.h>
 #include "../../ABElectronics_C_Libraries/ADCDACPi/ABE_ADCDACPi.h"  
 //gcc ../../ABElectronics_C_Libraries/ADCDACPi/ABE_ADCDACPi.c Testes.c -o Testes -lpigpio -lrt -lpthread -lfftw3 -lfftw3f -lm
 
@@ -13,6 +14,8 @@
 #define D2 24
 #define D1 23
 #define D0 3
+
+#define SINAL 12
 
 #define RD 15
 #define WR 0
@@ -177,6 +180,48 @@ void verificar_dial_tone(){
 }
 
 // DTMF
+void Reset() {
+	gpioWrite(RD, 1);	
+	gpioWrite(WR, 1);
+	gpioDelay(5000); 
+}
+
+void High_RSO() {
+
+	int stateRSO = gpioRead(RSO);
+	//Print_RSO();
+
+	while(stateRSO == 0) {
+		gpioWrite(RSO, 1);
+		gpioDelay(5000);
+		//Print_RSO();
+		break; }
+
+	return;
+}
+
+void DataBusRD() {
+	int state0 = gpioRead(D0);
+	int state1 = gpioRead(D1);
+	int state2 = gpioRead(D2);
+	int state3 = gpioRead(D3);
+	int stateIRQ = gpioRead(IRQ);
+	//printf("Temos: IRQ = %d\n", stateIRQ);
+	printf("O DTMF recebido foi %d %d %d %d\n", state3, state2, state1, state0); }
+
+void readStatus() {
+
+	gpioWrite(RSO, 1);		//Read Status
+	Reset();
+
+	gpioWrite(RD, 0);	
+	gpioWrite(WR, 1);
+	gpioDelay(50000); 
+
+	Reset();	
+
+	return; }
+
 void Inicialization() {
 
 	gpioDelay(100000);
@@ -267,34 +312,6 @@ void SetMode() {
 	Reset();
 
 }
-
-void Reset() {
-	gpioWrite(RD, 1);	
-	gpioWrite(WR, 1);
-	gpioDelay(5000); 
-}
-
-void DataBusRD() {
-	int state0 = gpioRead(D0);
-	int state1 = gpioRead(D1);
-	int state2 = gpioRead(D2);
-	int state3 = gpioRead(D3);
-	int stateIRQ = gpioRead(IRQ);
-	//printf("Temos: IRQ = %d\n", stateIRQ);
-	printf("O DTMF recebido foi %d %d %d %d\n", state3, state2, state1, state0); }
-
-void readStatus() {
-
-	gpioWrite(RSO, 1);		//Read Status
-	Reset();
-
-	gpioWrite(RD, 0);	
-	gpioWrite(WR, 1);
-	gpioDelay(50000); 
-
-	Reset();	
-
-	return; }
 
 void mandar_dtmf() {
 
@@ -389,6 +406,27 @@ void mandar_dtmf() {
 
 }
 
+void mandar_sinal() {
+    
+    gpioSetMode(SINAL, PI_OUTPUT);
+
+    double Duration = 10;
+    double StartTime = time_time();
+    double CurrentTime;
+
+    while((CurrentTime = time_time()) - StartTime < Duration ) {
+        double freq = 50;
+        double amp = 0.5;
+
+        double time = CurrentTime - StartTime;
+        double value = amp * sin(2*3.14159*freq*time);
+
+        gpioSetPWMfrequency(SINAL, 500);
+        gpioPWM(SINAL, (int)((value + 1.0)* 127.5));
+        time_sleep(0.01);
+    }
+}
+
 int main(int argc, char **argv){
 	setvbuf (stdout, NULL, _IONBF, 0); // needed to print to the command line
 
@@ -398,26 +436,26 @@ int main(int argc, char **argv){
 			return EXIT_FAILURE;
 		}    
 
-    int funcao;
-    printf("Recetor ou emissor? Recetor(1) Emissor(0)\n");
-    scanf("%d",&funcao);
+    // int funcao;
+    // printf("Recetor ou emissor? Recetor(1) Emissor(0)\n");
+    // scanf("%d",&funcao);
 
-    if(funcao==0) {
-        verificar_dial_tone();
-        //usleep(10000000); //Pausa 10 seg para marcar o tom
-        //Marcar dtmf 
-        mandar_dtmf();
+    // if(funcao==0) {
+    //     verificar_dial_tone();
+    //     //usleep(10000000); //Pausa 10 seg para marcar o tom
+    //     //Marcar dtmf 
+    //     mandar_dtmf();
+        mandar_sinal();
 
-    }
-    else{
-        verificar_RV();
-        colocar_off_hook();
-        printf("Chamada Estabelecida\n");
-    }
+    // }
+    // else{
+    //     verificar_RV();
+    //     colocar_off_hook();
+    //     printf("Chamada Estabelecida\n");
+    // }
 	
-
-	(void)argc;
-	(void)argv;
+	// (void)argc;
+	// (void)argv;
 
     //gpioWrite(LRC, 0); //colocar relé a 0 na terminação
 
