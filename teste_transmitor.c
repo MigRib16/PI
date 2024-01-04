@@ -1,10 +1,10 @@
 /*
- * teste_receive_dtmf.c
+ * teste_transmitor.c
  *
  *  Created on: 27 Dec 2023
  *
- *      compile with "gcc -o teste_receive_dtmf teste_receive_dtmf.c -lpigpio -lrt -lpthread -lm"
- *      run with "sudo ./teste_receive_dtmf"
+ *      compile with "gcc -o teste_transmitor teste_transmitor.c -lpigpio -lrt -lpthread -lm"
+ *      run with "sudo ./teste_transmitor"
  */
 
 #include <stdio.h>
@@ -27,33 +27,27 @@
 
 void colocar_off_hook() {
 	int escolha;
-	while(1)
-	{
-	//define state of input
-	
-	printf("Efetuar off-hook? Sim(1), Não(0), Terminar(2)\n");
-	scanf("%d", &escolha);
-	
-	if (escolha==2)
-		break;
-		
-	gpioWrite(LRC, escolha);  // 0 = OnHook | 1 = OffHook
-	
+
+	gpioWrite(LRC, 0);
 	gpioDelay(1000000);
 	int state = gpioRead(LRD);
 	
-	if(state == 1)
+	if(state == 0)
 	{
-		printf("Pino SHK em nivel baixo e estado on-hook\n");
+		gpioDelay(1000000);
+		gpioWrite(LRC, 1);
+		printf("Pino SHK em nivel alto e estado off-hook\n");
 	}
 	
 	else 
 	{
+		printf("Pino SHK em nivel baixo e estado on-hook\n");
+		gpioDelay(1000000);
+		gpioWrite(LRC, 1);
 		printf("Pino SHK em nivel alto e estado off-hook\n");
 	}
 	
 	gpioDelay(500000);
-	}
 }
 
 void Reset() {
@@ -70,12 +64,12 @@ void Print_RSO() {
 void High_RSO() {
 
 	int stateRSO = gpioRead(RSO);
-	Print_RSO();
+	//Print_RSO();
 
 	while(stateRSO == 0) {
 		gpioWrite(RSO, 1);
 		gpioDelay(5000);
-		Print_RSO();
+		//Print_RSO();
 		break; }
 
 	return;
@@ -194,6 +188,27 @@ void SetMode() {
 
 }
 
+void ReseTone() {
+
+	gpioWrite(RSO, 0);		// Write 0000 on Transmit Data 
+	gpioDelay(5000);
+
+	Print_RSO();
+
+	gpioWrite(D0, 0);
+	gpioWrite(D1, 0);
+	gpioWrite(D2, 0);
+	gpioWrite(D3, 0);
+	gpioDelay(5000);
+
+	gpioWrite(RD, 1);
+	gpioWrite(WR, 0);
+	gpioDelay(50000); 
+
+	Reset();
+	
+}
+
 int main(){
 	int num;
 	
@@ -225,8 +240,8 @@ int main(){
 
 	//ReseTone();
 
-	while(1)
-	{
+	//while(1)
+	//{
 	//define state of input
 
 	gpioWrite(RSO, 0);		// Write 0001 on Transmit Data  
@@ -248,9 +263,69 @@ int main(){
 	
 	readStatus(); 
 
+	gpioWrite(RSO, 0);		// Write 1010 on Transmit Data  
+	gpioDelay(50000);
+
+	Reset();
+
+	gpioWrite(D0, 0);
+	gpioWrite(D1, 1);
+	gpioWrite(D2, 0);
+	gpioWrite(D3, 1);
+	gpioDelay(5000);
+
+	gpioWrite(RD, 1);
+	gpioWrite(WR, 0);
+	gpioDelay(500000);
+
+	DataBusRD();
+	Reset();
+
+	readStatus(); 
+
+	gpioWrite(RSO, 0);		// Write 1010 on Transmit Data  
+	gpioDelay(50000);
+
+	Reset();
+
+	gpioWrite(D0, 0);
+	gpioWrite(D1, 1);
+	gpioWrite(D2, 0);
+	gpioWrite(D3, 1);
+	gpioDelay(5000);
+
+	gpioWrite(RD, 1);
+	gpioWrite(WR, 0);
+	gpioDelay(500000);
+
+	DataBusRD();
+	Reset();
+
+	readStatus(); 
+
+	gpioWrite(RSO, 0);		// Write 1010 on Transmit Data  
+	gpioDelay(50000);
+
+	Reset();
+
+	gpioWrite(D0, 0);
+	gpioWrite(D1, 1);
+	gpioWrite(D2, 0);
+	gpioWrite(D3, 1);
+	gpioDelay(5000);
+
+	gpioWrite(RD, 1);
+	gpioWrite(WR, 0);
+	gpioDelay(500000);
+
+	DataBusRD();
+	Reset();
+
+	readStatus(); 
+
 	//gpioDelay(5000000);
 
-	}
+	//}
 
 	gpioTerminate();
 
