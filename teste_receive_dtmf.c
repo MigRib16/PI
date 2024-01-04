@@ -27,24 +27,18 @@
 
 void colocar_off_hook() {
 	int escolha;
-	while(1)
-	{
-	//define state of input
-	
-	printf("Efetuar off-hook? Sim(1), Não(0), Terminar(2)\n");
-	scanf("%d", &escolha);
-	
-	if (escolha==2)
-		break;
-		
-	gpioWrite(LRC, escolha);  // 0 = OnHook | 1 = OffHook
-	
+
+	gpioWrite(LRC, 0);
 	gpioDelay(1000000);
+	gpioWrite(LRC, 1);
 	int state = gpioRead(LRD);
+
 	
-	if(state == 1)
+	if(state == 0)
 	{
-		printf("Pino SHK em nivel baixo e estado on-hook\n");
+		gpioDelay(1000000);
+		gpioWrite(LRC, 0);
+		printf("Pino SHK em nivel alto e estado off-hook\n");
 	}
 	
 	else 
@@ -53,7 +47,6 @@ void colocar_off_hook() {
 	}
 	
 	gpioDelay(500000);
-	}
 }
 
 void Reset() {
@@ -62,20 +55,13 @@ void Reset() {
 	gpioDelay(5000); 
 }
 
-void Print_RSO() {
-	int stateRSO = gpioRead(RSO);
-	printf("O RSO está a %d \n", stateRSO);
-}
-
 void High_RSO() {
 
 	int stateRSO = gpioRead(RSO);
-	Print_RSO();
 
 	while(stateRSO == 0) {
 		gpioWrite(RSO, 1);
 		gpioDelay(5000);
-		Print_RSO();
 		break; }
 
 	return;
@@ -223,8 +209,6 @@ int main(){
 
 	SetMode();
 
-	//ReseTone();
-
 	while(1)
 	{
 	//define state of input
@@ -232,23 +216,18 @@ int main(){
 	gpioWrite(RSO, 0);		// Write 0001 on Transmit Data  
 	gpioDelay(50000);
 
-	gpioWrite(D0, 1);
-	gpioWrite(D1, 0);
-	gpioWrite(D2, 0);
-	gpioWrite(D3, 0);
-	gpioDelay(5000);
-
-	gpioWrite(RD, 1);
-	gpioWrite(WR, 0);
+	gpioWrite(RD, 0);
+	gpioWrite(WR, 1);
 	gpioDelay(500000);
 
 	DataBusRD();
+	gpioDelay(500000);
 	
 	Reset();  
 	
 	readStatus(); 
 
-	//gpioDelay(5000000);
+	gpioDelay(500000);
 
 	}
 

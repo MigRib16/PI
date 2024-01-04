@@ -20,35 +20,27 @@ void performFFT(double *input, double complex *output, int size) {
     fftw_destroy_plan(plan);
 }
 
-void colocar_off_hook(){
-    gpioSetMode(LRC, PI_OUTPUT);
-	gpioSetMode(LRD, PI_INPUT);
-   
-   int escolha;
-    do
+
+void colocar_off_hook() {
+	int escolha;
+
+	gpioWrite(LRC, 0);
+	gpioDelay(1000000);
+	int state = gpioRead(LRD);
+	
+	if(state == 1)
 	{
-	    //define state of input
-	    printf("Efetuar off-hook? Sim(1), Não(0\n");
-	   
-	    scanf("%d", &escolha);
-		
-	    gpioWrite(LRC, escolha);  // 1 = OnHook | 0 = OffHook
+		gpioDelay(1000000);
+		gpioWrite(LRC, 1);
+		printf("Pino SHK em nivel alto e estado off-hook\n");
+	}
 	
-	    gpioDelay(1000000);
-	    int state = gpioRead(LRD);
+	else 
+	{
+		printf("Pino SHK em nivel alto e estado off-hook\n");
+	}
 	
-	    if(state == 1)
-	    {
-		    printf("Pino SHK em nivel baixo e estado on-hook\n");
-	    }
-	
-	    else 
-	    {
-		    printf("Pino SHK em nivel alto e estado off-hook\n");
-             break;
-	    }
-	
-	}while(state != 0);
+	gpioDelay(500000);
 }
 
 void clearscreen ()
@@ -68,6 +60,8 @@ void verificar_RV(){
             break;
 	    }
     }while(state!=0);
+    colocar_off_hook();
+    printf("Chamada estabelecida\n");
 }
 
 void findMax(const double *array, int size, double *maxValue, int *maxIndex){
@@ -116,7 +110,8 @@ void verificar_dial_tone(){
 	// calculate the average value
 	double average = 0;
 	double sum = 0;
-	for (x = 0; x < NUM_SAMPLES; x++)
+
+	for (int x = 0; x < NUM_SAMPLES; x++)
 	{
 		sum += samplearray[x];
 	}
@@ -130,7 +125,7 @@ void verificar_dial_tone(){
 	// compute the sample rate
 	double samplerate = (NUM_SAMPLES / elapsedTime) * 1000;
 
-	printf("%d samples in %G ms.\nThe sample rate was %G samples per second\nThe average voltage was %Gv", numberofsamples, elapsedTime, samplerate, average);
+	printf("%d samples in %G ms.\nThe sample rate was %G samples per second\nThe average voltage was %Gv\n", NUM_SAMPLES, elapsedTime, samplerate, average);
     
 	// Calcule a FFT
     performFFT(samplearray, fftResult, NUM_SAMPLES);
@@ -166,25 +161,44 @@ void verificar_dial_tone(){
     //printf("Max value: %f e max index: %d\n",maxValue,maxIndex);
 
     double freq = frequencies[maxIndex];
-    freq=freq*2;
+    //freq=freq*2;
     printf("Dial-tone detetado com Frequência: %f\n", freq);
 }
 
 int main(int argc, char **argv){
 	setvbuf (stdout, NULL, _IONBF, 0); // needed to print to the command line
 
-    //Relé
+	if(gpioInitialise() < 1)
+		{
+			fprintf(stderr,"Falha ao inicializar o pigpio\n");
+			return EXIT_FAILURE;
+		}    
+
+/*   int funcao;
+    printf("Recetor ou emissor? Recetor(1) Emissor(0)\n");
+    scanf("%d",&funcao);
+
+    if(funcao==0){
     colocar_off_hook();
     usleep(2000000); //Pausa 2 seg
     verificar_dial_tone();
     usleep(10000000); //Pausa 10 seg para marcar o tom
-    //verificar_RV();
+    //Marcar dtmf 
+    }
+    else{
+        verificar_RV();
+    }
 	
 
 	(void)argc;
 	(void)argv;
 
-    //gpioWrite(LRC, 0); //colocar relé a 0 na terminação
+    //gpioWrite(LRC, 0); //colocar relé a 0 na terminação*/ 
+
+    colocar_off_hook();
+
+    verificar_dial_tone();
+
     gpioTerminate();
     
 	return (0);

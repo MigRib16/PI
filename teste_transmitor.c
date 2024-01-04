@@ -232,7 +232,7 @@ int main(){
 	gpioSetMode(RSO, PI_OUTPUT);
 	gpioSetMode(IRQ, PI_INPUT);
 
-	colocar_off_hook();
+	//colocar_off_hook();
 
 	Inicialization();
 
@@ -311,7 +311,7 @@ int main(){
 	gpioWrite(D0, 0);
 	gpioWrite(D1, 1);
 	gpioWrite(D2, 0);
-	gpioWrite(D3, 1);
+	gpioWrite(D3, 0);
 	gpioDelay(5000);
 
 	gpioWrite(RD, 1);
