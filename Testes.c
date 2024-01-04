@@ -9,17 +9,26 @@
 #include "../../ABElectronics_C_Libraries/ADCDACPi/ABE_ADCDACPi.h"  
 //gcc ../../ABElectronics_C_Libraries/ADCDACPi/ABE_ADCDACPi.c Testes.c -o Testes -lpigpio -lrt -lpthread -lfftw3 -lfftw3f -lm
 
+#define D3 25
+#define D2 24
+#define D1 23
+#define D0 3
+
+#define RD 15
+#define WR 0
+#define RSO 1
+#define IRQ 5
+
 #define LRC 17
 #define LRD 18
 #define RV 5
-#define NUM_SAMPLES 100000 //Aproximadamente 10 seg
+#define NUM_SAMPLES 10000 //Aproximadamente 10 seg
 
 void performFFT(double *input, double complex *output, int size) {
     fftw_plan plan = fftw_plan_r2r_1d(size, input, (fftw_complex *)output, FFTW_R2HC, FFTW_ESTIMATE);
     fftw_execute(plan);
     fftw_destroy_plan(plan);
 }
-
 
 void colocar_off_hook() {
 	int escolha;
@@ -133,9 +142,9 @@ void verificar_dial_tone(){
     // Frequências correspondentes
     double frequencies[size];
     double magnitude[size];
-
-    for(int i=0;i<size;i++){
-        frequencies[i]=i*0.1;
+    double step = samplerate / (NUM_SAMPLES);
+    for(int i=0;i<=NUM_SAMPLES/2;i++){
+        frequencies[i]=i*step;
     }
 	//Ao analisar a magnitude do espectro, é possível identificar quais frequências têm maior influência ou contribuição no sinal.
     for (int i = 0; i <= size; i++) {
@@ -158,11 +167,226 @@ void verificar_dial_tone(){
 
 
 
-    //printf("Max value: %f e max index: %d\n",maxValue,maxIndex);
+    printf("Max value: %f e max index: %d\n",maxValue,maxIndex);
 
     double freq = frequencies[maxIndex];
-    //freq=freq*2;
+    freq=freq*2;
     printf("Dial-tone detetado com Frequência: %f\n", freq);
+
+    
+}
+
+// DTMF
+void Inicialization() {
+
+	gpioDelay(100000);
+
+	High_RSO();
+
+	readStatus();
+	// Write to Control Register -> CRA -> WR 0 0 0 0 -> CRA -> WR 1 0 0 0 -> Change to CRB -> CRB -> WR 0 0 0 0
+	
+	Reset();
+
+	gpioWrite(D0, 0);
+	gpioWrite(D1, 0);
+	gpioWrite(D2, 0);
+	gpioWrite(D3, 0);
+	gpioDelay(5000);
+
+	gpioWrite(WR, 0);		// CRA: Escrever 0000
+	gpioWrite(RD, 1);
+	gpioDelay(50000);
+
+	Reset();
+
+	gpioWrite(WR, 0);		// CRA: Escrever 0000
+	gpioWrite(RD, 1);
+	gpioDelay(50000);
+
+	Reset();
+	gpioDelay(50000); 
+
+	gpioWrite(D3, 1);
+	gpioDelay(5000);
+	
+	gpioWrite(WR, 0);		// CRA: Escrever 1000 To Change To CRB
+	gpioWrite(RD, 1);
+	gpioDelay(50000);
+
+	Reset(); 
+	gpioDelay(50000); 
+
+	gpioWrite(D3, 0);		// CRB: Escrever 0000
+	gpioDelay(5000);
+
+	gpioWrite(WR, 0);	
+	gpioWrite(RD, 1);
+	gpioDelay(50000);
+
+	Reset();
+
+	readStatus();
+
+	return; }
+
+void SetMode() {
+
+	gpioDelay(5000);
+	High_RSO();
+
+	gpioWrite(RSO, 1);			// Write to Control A '1101'
+	gpioDelay(5000);
+	Reset();
+
+	gpioWrite(D0, 1);
+	gpioWrite(D1, 0);
+	gpioWrite(D2, 1);
+	gpioWrite(D3, 1);
+	gpioDelay(5000);
+
+	gpioWrite(RD, 1);
+	gpioWrite(WR, 0);
+	gpioDelay(50000);
+
+	Reset();
+
+	gpioWrite(RSO, 1);			// Write to Control B '0000'
+	gpioDelay(50000);
+
+	gpioWrite(D0, 0);
+	gpioWrite(D1, 0);
+	gpioWrite(D2, 0);
+	gpioWrite(D3, 0);
+	gpioDelay(5000);
+
+	gpioWrite(RD, 1);			
+	gpioWrite(WR, 0);
+	gpioDelay(50000);
+
+	Reset();
+
+}
+
+void Reset() {
+	gpioWrite(RD, 1);	
+	gpioWrite(WR, 1);
+	gpioDelay(5000); 
+}
+
+void DataBusRD() {
+	int state0 = gpioRead(D0);
+	int state1 = gpioRead(D1);
+	int state2 = gpioRead(D2);
+	int state3 = gpioRead(D3);
+	int stateIRQ = gpioRead(IRQ);
+	//printf("Temos: IRQ = %d\n", stateIRQ);
+	printf("O DTMF recebido foi %d %d %d %d\n", state3, state2, state1, state0); }
+
+void readStatus() {
+
+	gpioWrite(RSO, 1);		//Read Status
+	Reset();
+
+	gpioWrite(RD, 0);	
+	gpioWrite(WR, 1);
+	gpioDelay(50000); 
+
+	Reset();	
+
+	return; }
+
+void mandar_dtmf() {
+
+    gpioSetMode(D3, PI_OUTPUT);
+	gpioSetMode(D2, PI_OUTPUT);
+	gpioSetMode(D1, PI_OUTPUT);
+	gpioSetMode(D0, PI_OUTPUT);
+
+	gpioSetMode(RD, PI_OUTPUT);
+	gpioSetMode(WR, PI_OUTPUT);
+	gpioSetMode(RSO, PI_OUTPUT);
+	gpioSetMode(IRQ, PI_INPUT);
+
+    gpioWrite(RSO, 0);		// Write 0001 on Transmit Data  
+	gpioDelay(50000);
+
+	gpioWrite(D0, 1);
+	gpioWrite(D1, 0);
+	gpioWrite(D2, 0);
+	gpioWrite(D3, 0);
+	gpioDelay(5000);
+
+	gpioWrite(RD, 1);
+	gpioWrite(WR, 0);
+	gpioDelay(500000);
+
+	DataBusRD();
+	
+	Reset();  
+	
+	readStatus(); 
+
+	gpioWrite(RSO, 0);		// Write 1010 on Transmit Data  
+	gpioDelay(50000);
+
+	Reset();
+
+	gpioWrite(D0, 0);
+	gpioWrite(D1, 1);
+	gpioWrite(D2, 0);
+	gpioWrite(D3, 1);
+	gpioDelay(5000);
+
+	gpioWrite(RD, 1);
+	gpioWrite(WR, 0);
+	gpioDelay(500000);
+
+	DataBusRD();
+	Reset();
+
+	readStatus(); 
+
+	gpioWrite(RSO, 0);		// Write 1010 on Transmit Data  
+	gpioDelay(50000);
+
+	Reset();
+
+	gpioWrite(D0, 0);
+	gpioWrite(D1, 1);
+	gpioWrite(D2, 0);
+	gpioWrite(D3, 1);
+	gpioDelay(5000);
+
+	gpioWrite(RD, 1);
+	gpioWrite(WR, 0);
+	gpioDelay(500000);
+
+	DataBusRD();
+	Reset();
+
+	readStatus(); 
+
+	gpioWrite(RSO, 0);		// Write 0010 on Transmit Data  
+	gpioDelay(50000);
+
+	Reset();
+
+	gpioWrite(D0, 0);
+	gpioWrite(D1, 1);
+	gpioWrite(D2, 0);
+	gpioWrite(D3, 0);
+	gpioDelay(5000);
+
+	gpioWrite(RD, 1);
+	gpioWrite(WR, 0);
+	gpioDelay(500000);
+
+	DataBusRD();
+	Reset();
+
+	readStatus();
+
 }
 
 int main(int argc, char **argv){
@@ -174,30 +398,28 @@ int main(int argc, char **argv){
 			return EXIT_FAILURE;
 		}    
 
-/*   int funcao;
+    int funcao;
     printf("Recetor ou emissor? Recetor(1) Emissor(0)\n");
     scanf("%d",&funcao);
 
-    if(funcao==0){
-    colocar_off_hook();
-    usleep(2000000); //Pausa 2 seg
-    verificar_dial_tone();
-    usleep(10000000); //Pausa 10 seg para marcar o tom
-    //Marcar dtmf 
+    if(funcao==0) {
+        verificar_dial_tone();
+        //usleep(10000000); //Pausa 10 seg para marcar o tom
+        //Marcar dtmf 
+        mandar_dtmf();
+
     }
     else{
         verificar_RV();
+        colocar_off_hook();
+        printf("Chamada Estabelecida\n");
     }
 	
 
 	(void)argc;
 	(void)argv;
 
-    //gpioWrite(LRC, 0); //colocar relé a 0 na terminação*/ 
-
-    colocar_off_hook();
-
-    verificar_dial_tone();
+    //gpioWrite(LRC, 0); //colocar relé a 0 na terminação
 
     gpioTerminate();
     
