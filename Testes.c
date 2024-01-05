@@ -20,7 +20,7 @@
 #define RD 15
 #define WR 0
 #define RSO 1
-#define IRQ 5
+#define IRQ 16
 
 #define LRC 17
 #define LRD 18
@@ -415,8 +415,8 @@ void mandar_sinal() {
     double CurrentTime;
 
     while((CurrentTime = time_time()) - StartTime < Duration ) {
-        double freq = 50;
-        double amp = 0.5;
+        double freq = 20;
+        double amp = 0.02;
 
         double time = CurrentTime - StartTime;
         double value = amp * sin(2*3.14159*freq*time);
@@ -441,10 +441,13 @@ int main(int argc, char **argv){
     // scanf("%d",&funcao);
 
     // if(funcao==0) {
-    //     verificar_dial_tone();
-    //     //usleep(10000000); //Pausa 10 seg para marcar o tom
-    //     //Marcar dtmf 
-    //     mandar_dtmf();
+		colocar_off_hook();
+	//usleep(2000000);
+        verificar_dial_tone();
+         //usleep(2000000); //Pausa 10 seg para marcar o tom
+    //     Marcar dtmf 
+    	 mandar_dtmf();
+		 usleep(10000000);
         mandar_sinal();
 
     // }
