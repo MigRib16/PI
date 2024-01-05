@@ -10,6 +10,11 @@
 #include "../../ABElectronics_C_Libraries/ADCDACPi/ABE_ADCDACPi.h"  
 //gcc ../../ABElectronics_C_Libraries/ADCDACPi/ABE_ADCDACPi.c Testes.c -o Testes -lpigpio -lrt -lpthread -lfftw3 -lfftw3f -lm
 
+//sudo apt-get update
+//sudo apt-get install ffmpeg
+//ffmpeg -i seu_arquivo.mp4 -vn -acodec pcm_s16le -ar 44100 -ac 2 output.wav
+
+
 #define D3 25
 #define D2 24
 #define D1 23

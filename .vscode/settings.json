@@ -61,6 +61,13 @@
     "abe_adcdacpi.h": "c",
     "stdio.h": "c",
     "stdlib.h": "c",
-    "complex.h": "c"
+    "complex.h": "c",
+    "array": "c",
+    "*.tcc": "c",
+    "memory": "c",
+    "istream": "c",
+    "functional": "c",
+    "tuple": "c",
+    "utility": "c"
   }
 }
