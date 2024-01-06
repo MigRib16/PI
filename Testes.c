@@ -420,7 +420,7 @@ void mandar_sinal() {
     double CurrentTime;
 
     while((CurrentTime = time_time()) - StartTime < Duration ) {
-        double freq = 20;
+        double freq = 2000;
         double amp = 0.02;
 
         double time = CurrentTime - StartTime;
@@ -446,13 +446,13 @@ int main(int argc, char **argv){
     // scanf("%d",&funcao);
 
     // if(funcao==0) {
-		colocar_off_hook();
+		//colocar_off_hook();
 	//usleep(2000000);
-        verificar_dial_tone();
+       // verificar_dial_tone();
          //usleep(2000000); //Pausa 10 seg para marcar o tom
     //     Marcar dtmf 
-    	 mandar_dtmf();
-		 usleep(10000000);
+    	// mandar_dtmf();
+		// usleep(10000000);
         mandar_sinal();
 
     // }

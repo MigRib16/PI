@@ -240,8 +240,8 @@ int main(){
 
 	//ReseTone();
 
-	//while(1)
-	//{
+	while(1)
+	{
 	//define state of input
 
 	gpioWrite(RSO, 0);		// Write 0001 on Transmit Data  
@@ -325,7 +325,7 @@ int main(){
 
 	//gpioDelay(5000000);
 
-	//}
+	}
 
 	gpioTerminate();
 
