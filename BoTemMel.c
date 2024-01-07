@@ -1,58 +1,74 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <pigpio.h>
-#include <alsa/asoundlib.h>
-//sudo apt-get install libasound2-dev
-//gcc -o BoTemMel BoTemMel.c -lpigpio -lasound
+#include <unistd.h>
+#include <mpg123.h>
+//sudo apt-get install libmpg123-dev
+//gcc -o BoTemMel BoTemMel.c -lmpg123 -lpigpio -lrt -lpthread -lm
+//sudo ./BoTemMel BoTemMel.mp3
 
-#define PWM_PIN 12
+#define BUFFER_SIZE 4096
+#define DELAY_MICROSECONDS 1000 // Ajuste conforme necessário
 
-void playWav(const char *fileName) {
-    FILE *file;
-    long fileSize;
-    char *buffer;
-
-    file = fopen(fileName, "rb");
-    if (!file) {
-        perror("Erro ao abrir arquivo WAV");
-        exit(EXIT_FAILURE);
-    }
-
-    fseek(file, 0, SEEK_END);
-    fileSize = ftell(file);
-    fseek(file, 0, SEEK_SET);
-
-    buffer = (char *)malloc(fileSize);
-    if (!buffer) {
-        perror("Erro ao alocar memória");
-        exit(EXIT_FAILURE);
-    }
-
-    fread(buffer, 1, fileSize, file);
-
-    fclose(file);
-
-    gpioSetPWMfrequency(PWM_PIN, 44100);  // Frequência de amostragem do áudio
-    gpioSetPWMrange(PWM_PIN, 255);  // Resolução do PWM
-
-    for (int i = 0; i < fileSize; i++) {
-        gpioPWM(PWM_PIN, buffer[i]);  // Modula o sinal de áudio para o pino PWM
-        time_sleep(0.0001);  // Ajuste conforme necessário para evitar distorção
-    }
-
-    free(buffer);
+void error(const char *msg) {
+    fprintf(stderr, "%s\n", msg);
+    exit(EXIT_FAILURE);
 }
 
-int main() {
-    if (gpioInitialise() < 0) {
-        fprintf(stderr, "Erro ao inicializar pigpio\n");
-        return 1;
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        fprintf(stderr, "Uso: %s <arquivo.mp3>\n", argv[0]);
+        return EXIT_FAILURE;
     }
 
-    playWav("BoTemMel.wav");
+    const char *filename = argv[1];
 
-    gpioPWM(PWM_PIN, 0);  // Desliga o PWM no final
+    int err = mpg123_init();
+    if (err != MPG123_OK) {
+        fprintf(stderr, "Falha ao inicializar o mpg123: %s\n", mpg123_plain_strerror(err));
+        return EXIT_FAILURE;
+    }
+
+    mpg123_handle *mh = mpg123_new(NULL, &err);
+    if (mh == NULL) {
+        fprintf(stderr, "Falha ao criar o manipulador mpg123: %s\n", mpg123_plain_strerror(err));
+        return EXIT_FAILURE;
+    }
+
+    err = mpg123_open(mh, filename);
+    if (err != MPG123_OK) {
+        fprintf(stderr, "Falha ao abrir o arquivo: %s\n", mpg123_plain_strerror(err));
+        return EXIT_FAILURE;
+    }
+
+    long rate;
+    int channels, encoding;
+    mpg123_getformat(mh, &rate, &channels, &encoding);
+
+    size_t buffer_size = BUFFER_SIZE;
+    unsigned char *buffer = (unsigned char *)malloc(buffer_size);
+
+    if (open_dac() != 1){ // open the DAC SPI channel
+		exit(1); // if the SPI bus fails to open exit the program
+	}
+
+    set_dac_gain(1); // set the DAC gain to 2 which will give a voltage range of 0 to 2.048V
+
+    size_t done;
+    while (mpg123_read(mh, buffer, buffer_size, &done) == MPG123_OK) {
+        for (size_t i = 0; i < done; i += 2) {
+            float voltage = ((float)(buffer[i] << 8 | buffer[i + 1]) / 32768.0) * 2.048;
+            set_dac_voltage(voltage, 1); // set the voltage on channel 1 to 1.2V
+            usleep(DELAY_MICROSECONDS);
+        }
+    }
+
+	
+    free(buffer);
+    mpg123_close(mh);
+    mpg123_delete(mh);
+    mpg123_exit();
 
     gpioTerminate();
-
     return 0;
 }
