@@ -3,8 +3,10 @@
 #include <pigpio.h>
 #include <unistd.h>
 #include <mpg123.h>
+#include "../../ABElectronics_C_Libraries/ADCDACPi/ABE_ADCDACPi.h"
+
 //sudo apt-get install libmpg123-dev
-//gcc -o BoTemMel BoTemMel.c -lmpg123 -lpigpio -lrt -lpthread -lm
+//gcc ../../ABElectronics_C_Libraries/ADCDACPi/ABE_ADCDACPi.c BoTemMel.c -o BoTemMel -lmpg123 -lpigpio -lrt -lpthread -lm
 //sudo ./BoTemMel BoTemMel.mp3
 
 #define BUFFER_SIZE 4096
