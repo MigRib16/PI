@@ -3,7 +3,7 @@
  *
  *  Created on: 27 Dec 2023
  *
- *      compile with "gcc -o teste_dial teste_dial.c -lpigpio -lrt -lpthread -lfftw3 -lfftw3f -lm"
+ *      compile with "gcc -o teste_dial teste_dial.c -lpigpio -lrt -lpthread -lfftw3 -lm"
  *      run with "sudo ./teste_dial"
  */
 #include <stdio.h>

@@ -10,7 +10,7 @@
 //sudo ./BoTemMel BoTemMel.mp3
 
 #define BUFFER_SIZE 4096
-#define DELAY_MICROSECONDS 1000 // Ajuste conforme necessário
+#define DELAY_MICROSECONDS 100 // Ajuste conforme necessário
 
 void error(const char *msg) {
     fprintf(stderr, "%s\n", msg);
