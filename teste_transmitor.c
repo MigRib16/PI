@@ -82,7 +82,7 @@ void DataBusRD() {
 	int state3 = gpioRead(D3);
 	int stateIRQ = gpioRead(IRQ);
 	//printf("Temos: IRQ = %d\n", stateIRQ);
-	printf("O DTMF recebido foi %d %d %d %d\n", state3, state2, state1, state0); }
+	printf("O DTMF enviado foi %d %d %d %d\n", state3, state2, state1, state0); }
 
 void ReadStatusRD() {
 	int state0 = gpioRead(D0);
@@ -98,7 +98,7 @@ void readStatus() {
 
 	gpioWrite(RD, 0);	
 	gpioWrite(WR, 1);
-	gpioDelay(500000); 
+	gpioDelay(50000); 
 
 	ReadStatusRD();
 	gpioDelay(5000); 
@@ -219,6 +219,57 @@ void ReseTone() {
 	
 }
 
+void mandar_dtmf() {
+
+	while(1)
+	{
+	//define state of input
+	int close;
+	
+	printf("Quer Enviar Tons DTMF? Sim(1), Não(2)\n");
+	scanf("%d", &close);
+	
+	if (close == 2)
+		break;
+
+
+	int escolha;
+	int bin[4];
+	int i = 0;
+
+	printf("Que Tom DTMF quer enviar?\n");
+	scanf("%d", &escolha);
+
+	while(escolha > 0)
+	{
+		// obtém o resto da divisão de num por 2
+		bin[i] = escolha % 2;
+		i++;
+		escolha = escolha / 2;
+	}
+
+	gpioWrite(RSO, 0);		// Write 0010 on Transmit Data  
+	gpioDelay(50000);
+
+	Reset();
+
+	gpioWrite(D0, bin[0]);
+	gpioWrite(D1, bin[1]);
+	gpioWrite(D2, bin[2]);
+	gpioWrite(D3, bin[3]);
+	gpioDelay(5000);
+
+	gpioWrite(RD, 1);
+	gpioWrite(WR, 0);
+	gpioDelay(500000);
+
+	DataBusRD();
+	Reset();
+
+	readStatus(); }
+
+}
+
 int main(){
 	int num;
 	
@@ -263,7 +314,7 @@ int main(){
 	gpioWrite(D1, 0);
 	gpioWrite(D2, 0);
 	gpioWrite(D3, 0);
-	gpioDelay(50000);
+	gpioDelay(5000);
 
 	gpioWrite(RD, 1);
 	gpioWrite(WR, 0);
@@ -334,6 +385,10 @@ int main(){
 	Reset();
 
 	readStatus(); 
+
+	gpioDelay(10000000);
+
+	//mandar_dtmf();
 
 	gpioDelay(5000000);
 
