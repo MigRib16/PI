@@ -217,6 +217,7 @@ void DataBusRD() {
 void readStatus() {
 
 	gpioWrite(RSO, 1);		//Read Status
+	gpioDelay(5000);
 	Reset();
 
 	gpioWrite(RD, 0);	
@@ -224,8 +225,7 @@ void readStatus() {
 	gpioDelay(50000); 
 
 	Reset();	
-
-	return; }
+}
 
 void Inicialization() {
 
@@ -330,6 +330,10 @@ void mandar_dtmf() {
 	gpioSetMode(RSO, PI_OUTPUT);
 	gpioSetMode(IRQ, PI_INPUT);
 
+	Inicialization();
+
+	SetMode();
+
     gpioWrite(RSO, 0);		// Write 0001 on Transmit Data  
 	gpioDelay(50000);
 
@@ -370,7 +374,7 @@ void mandar_dtmf() {
 	readStatus(); 
 
 	gpioWrite(RSO, 0);		// Write 1010 on Transmit Data  
-	gpioDelay(50000);
+	gpioDelay(500000);
 
 	Reset();
 
@@ -446,20 +450,22 @@ int main(int argc, char **argv){
     // scanf("%d",&funcao);
 
     // if(funcao==0) {
-		//colocar_off_hook();
-	//usleep(2000000);
-       // verificar_dial_tone();
-         //usleep(2000000); //Pausa 10 seg para marcar o tom
+		colocar_off_hook();
+		usleep(2000000);
+        verificar_dial_tone();
+        usleep(2000000); //Pausa 10 seg para marcar o tom
     //     Marcar dtmf 
-    	// mandar_dtmf();
-		// usleep(10000000);
-        mandar_sinal();
+    	mandar_dtmf();
+	    //usleep(10000000);
+		//mandar_dtmf();
+        //mandar_sinal();
 
     // }
     // else{
-    //     verificar_RV();
-    //     colocar_off_hook();
-    //     printf("Chamada Estabelecida\n");
+         //verificar_RV();
+         //colocar_off_hook();
+         //printf("Chamada Estabelecida\n");
+         //mandar_dtmf();
     // }
 	
 	// (void)argc;

@@ -84,6 +84,13 @@ void DataBusRD() {
 	//printf("Temos: IRQ = %d\n", stateIRQ);
 	printf("O DTMF recebido foi %d %d %d %d\n", state3, state2, state1, state0); }
 
+void ReadStatusRD() {
+	int state0 = gpioRead(D0);
+	int state1 = gpioRead(D1);
+	int state2 = gpioRead(D2);
+	int state3 = gpioRead(D3);
+	printf("O Read Status é %d %d %d %d\n", state3, state2, state1, state0); }
+
 void readStatus() {
 
 	gpioWrite(RSO, 1);		//Read Status
@@ -91,7 +98,10 @@ void readStatus() {
 
 	gpioWrite(RD, 0);	
 	gpioWrite(WR, 1);
-	gpioDelay(50000); 
+	gpioDelay(500000); 
+
+	ReadStatusRD();
+	gpioDelay(5000); 
 
 	Reset();	
 
@@ -232,7 +242,9 @@ int main(){
 	gpioSetMode(RSO, PI_OUTPUT);
 	gpioSetMode(IRQ, PI_INPUT);
 
-	//colocar_off_hook();
+	colocar_off_hook();
+
+	gpioDelay(500000);
 
 	Inicialization();
 
@@ -240,18 +252,18 @@ int main(){
 
 	//ReseTone();
 
-	while(1)
-	{
+	//while(1)
+	//{
 	//define state of input
 
 	gpioWrite(RSO, 0);		// Write 0001 on Transmit Data  
-	gpioDelay(50000);
+	gpioDelay(500000);
 
 	gpioWrite(D0, 1);
 	gpioWrite(D1, 0);
 	gpioWrite(D2, 0);
 	gpioWrite(D3, 0);
-	gpioDelay(5000);
+	gpioDelay(50000);
 
 	gpioWrite(RD, 1);
 	gpioWrite(WR, 0);
@@ -264,7 +276,7 @@ int main(){
 	readStatus(); 
 
 	gpioWrite(RSO, 0);		// Write 1010 on Transmit Data  
-	gpioDelay(50000);
+	gpioDelay(500000);
 
 	Reset();
 
@@ -284,7 +296,7 @@ int main(){
 	readStatus(); 
 
 	gpioWrite(RSO, 0);		// Write 1010 on Transmit Data  
-	gpioDelay(50000);
+	gpioDelay(500000);
 
 	Reset();
 
@@ -304,7 +316,7 @@ int main(){
 	readStatus(); 
 
 	gpioWrite(RSO, 0);		// Write 1010 on Transmit Data  
-	gpioDelay(50000);
+	gpioDelay(500000);
 
 	Reset();
 
@@ -323,9 +335,9 @@ int main(){
 
 	readStatus(); 
 
-	//gpioDelay(5000000);
+	gpioDelay(5000000);
 
-	}
+	//}
 
 	gpioTerminate();
 

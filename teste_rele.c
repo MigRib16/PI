@@ -37,7 +37,7 @@ int main(){
 		printf("Pino SHK em nivel baixo e estado on-hook\n");
 	}
 	
-	else 
+	else
 	{
 		printf("Pino SHK em nivel alto e estado off-hook\n");
 	}
