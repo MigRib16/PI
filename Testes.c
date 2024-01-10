@@ -30,7 +30,7 @@
 #define LRC 17
 #define LRD 18
 #define RV 5
-#define NUM_SAMPLES 10000 //Aproximadamente 10 seg
+#define NUM_SAMPLES 100000 //Aproximadamente 10 seg
 
 void performFFT(double *input, double complex *output, int size) {
     fftw_plan plan = fftw_plan_r2r_1d(size, input, (fftw_complex *)output, FFTW_R2HC, FFTW_ESTIMATE);
@@ -42,7 +42,7 @@ void colocar_off_hook() {
         gpioSetMode(LRC, PI_OUTPUT);
         gpioSetMode(LRD, PI_INPUT);
         gpioWrite(LRC, 1);
-        printf("Pino SHK em nivel alto e estado off-hook\n");
+        printf("O Emulador encontra-se no estado: off-hook\n");
         gpioDelay(500000);
 }
 
@@ -50,7 +50,7 @@ void colocar_on_hook() {
         gpioSetMode(LRC, PI_OUTPUT);
         gpioSetMode(LRD, PI_INPUT);
         gpioWrite(LRC, 0);
-        printf("Pino SHK em nivel baixo e estado on-hook\n");
+        printf("\nO Emulador encontra-se no estado: on-hook\n");
         gpioDelay(500000);
 }
 
@@ -105,8 +105,6 @@ void verificar_dial_tone(){
 	struct timeval t1, t2;
 	double elapsedTime;
 
-	printf("Starting dial test...");
-
 	// start timer
 	gettimeofday(&t1, NULL);
 
@@ -136,7 +134,7 @@ void verificar_dial_tone(){
 	// compute the sample rate
 	double samplerate = (NUM_SAMPLES / elapsedTime) * 1000;
 
-	printf("%d samples in %G ms.\nThe sample rate was %G samples per second\nThe average voltage was %Gv\n", NUM_SAMPLES, elapsedTime, samplerate, average);
+	//printf("%d samples in %G ms.\nThe sample rate was %G samples per second\nThe average voltage was %Gv\n", NUM_SAMPLES, elapsedTime, samplerate, average);
     
 	// Calcule a FFT
     performFFT(samplearray, fftResult, NUM_SAMPLES);
@@ -169,13 +167,18 @@ void verificar_dial_tone(){
 
 
 
-    printf("Max value: %f e max index: %d\n",maxValue,maxIndex);
+    //printf("Max value: %f e max index: %d\n",maxValue,maxIndex);
 
     double freq = frequencies[maxIndex];
     freq=freq*2;
-    printf("Dial-tone detetado com Frequência: %f\n", freq);
-
-    
+	if(freq>350 && freq<450){
+    	printf("Dial-tone detetado com frequência: %f Hz\n", freq);
+		printf("Teste dial-tone: Sucesso\n");
+	}
+	else{
+		printf("Sinal com frequência: %f Hz detetado\n",freq);
+		printf("Teste dial-tone: Falhado\n");
+	}
 }
 
 // DTMF
@@ -199,14 +202,23 @@ void High_RSO() {
 	return;
 }
 
-void DataBusRD() {
+int DataBusRD() {
+	int decimal;
 	int state0 = gpioRead(D0);
 	int state1 = gpioRead(D1);
 	int state2 = gpioRead(D2);
 	int state3 = gpioRead(D3);
-	int stateIRQ = gpioRead(IRQ);
+
+	decimal = state0*1+state1*2+state2*4+state3*8;
+	if(decimal == 10)
+		decimal = 0;
+
+	//int stateIRQ = gpioRead(IRQ);
 	//printf("Temos: IRQ = %d\n", stateIRQ);
-	printf("O DTMF recebido foi %d %d %d %d\n", state3, state2, state1, state0); }
+	//printf("O DTMF enviado foi %d %d %d %d\n", state3, state2, state1, state0); 
+	printf("O DTMF enviado foi %d\n", decimal); 
+	
+	return decimal; }
 
 void readStatus() {
 
@@ -314,6 +326,8 @@ void SetMode() {
 
 void mandar_dtmf() {
 
+	int bin[4];
+
     gpioSetMode(D3, PI_OUTPUT);
 	gpioSetMode(D2, PI_OUTPUT);
 	gpioSetMode(D1, PI_OUTPUT);
@@ -335,13 +349,13 @@ void mandar_dtmf() {
 	gpioWrite(D1, 0);
 	gpioWrite(D2, 0);
 	gpioWrite(D3, 0);
-	gpioDelay(5000);
+	gpioDelay(50000);
 
 	gpioWrite(RD, 1);
 	gpioWrite(WR, 0);
 	gpioDelay(500000);
 
-	DataBusRD();
+	bin[0] = DataBusRD();
 	
 	Reset();  
 	
@@ -356,13 +370,13 @@ void mandar_dtmf() {
 	gpioWrite(D1, 1);
 	gpioWrite(D2, 0);
 	gpioWrite(D3, 1);
-	gpioDelay(5000);
+	gpioDelay(50000);
 
 	gpioWrite(RD, 1);
 	gpioWrite(WR, 0);
 	gpioDelay(500000);
 
-	DataBusRD();
+	bin[1] = DataBusRD();
 	Reset();
 
 	readStatus(); 
@@ -376,13 +390,13 @@ void mandar_dtmf() {
 	gpioWrite(D1, 1);
 	gpioWrite(D2, 0);
 	gpioWrite(D3, 1);
-	gpioDelay(5000);
+	gpioDelay(50000);
 
 	gpioWrite(RD, 1);
 	gpioWrite(WR, 0);
 	gpioDelay(500000);
 
-	DataBusRD();
+	bin[2] = DataBusRD();
 	Reset();
 
 	readStatus(); 
@@ -402,62 +416,106 @@ void mandar_dtmf() {
 	gpioWrite(WR, 0);
 	gpioDelay(500000);
 
-	DataBusRD();
+	bin[3] = DataBusRD();
 	Reset();
 
 	readStatus();
+
+	int num = bin[0]*1000 + bin[1]*100 + bin [2]*10 + bin[3];
+
+	if(num == 1002){
+    	printf("Chamada enviada para o número: %d\n", num);
+		printf("Envio de Tons DTMF: Sucesso\n");
+	}
+	else{
+		printf("Chamada enviada para o número: %d\n", num);
+		printf("Envio de Tons DTMF: Falhado\n");
+	}
 
 }
 
 void mandar_dtmf_canal() {
 
-	while(1)
-	{
 	//define state of input
 	int close;
 	
-	printf("Quer Enviar Tons DTMF? Sim(1), Não(2)\n");
+	printf("\nQuer Enviar Tons DTMF? Sim(0), Não(1): ");
 	scanf("%d", &close);
 	
-	if (close == 2)
-		break;
+	if (close >= 1) {
+		return; }
 
 
 	int escolha;
-	int bin[4];
+	int bin[3];
 	int i = 0;
 
-	printf("Que Tom DTMF quer enviar?\n");
-	scanf("%d", &escolha);
+	printf("A enviar Tons DTMF para o canal...\n");
+	usleep(1000000);
 
-	while(escolha > 0)
-	{
-		// obtém o resto da divisão de num por 2
-		bin[i] = escolha % 2;
-		i++;
-		escolha = escolha / 2;
-	}
-
-	gpioWrite(RSO, 0);		// Write 0010 on Transmit Data  
+	gpioWrite(RSO, 0);		// Write 0001 on Transmit Data  
 	gpioDelay(50000);
 
-	Reset();
-
-	gpioWrite(D0, bin[0]);
-	gpioWrite(D1, bin[1]);
-	gpioWrite(D2, bin[2]);
-	gpioWrite(D3, bin[3]);
+	gpioWrite(D0, 1);
+	gpioWrite(D1, 0);
+	gpioWrite(D2, 0);
+	gpioWrite(D3, 0);
 	gpioDelay(5000);
 
 	gpioWrite(RD, 1);
 	gpioWrite(WR, 0);
 	gpioDelay(500000);
 
-	DataBusRD();
-	Reset();
+	bin[0] = DataBusRD();
+	
+	Reset();  
+	
+	readStatus();  
+	
+	gpioWrite(RSO, 0);		// Write 0001 on Transmit Data  
+	gpioDelay(50000);
 
-	readStatus(); }
+	gpioWrite(D0, 0);
+	gpioWrite(D1, 1);
+	gpioWrite(D2, 0);
+	gpioWrite(D3, 0);
+	gpioDelay(5000);
 
+	gpioWrite(RD, 1);
+	gpioWrite(WR, 0);
+	gpioDelay(500000);
+
+	bin[1] = DataBusRD();
+	
+	Reset();  
+	
+	readStatus();
+	
+	gpioWrite(RSO, 0);		// Write 0001 on Transmit Data  
+	gpioDelay(50000);
+
+	gpioWrite(D0, 1);
+	gpioWrite(D1, 1);
+	gpioWrite(D2, 0);
+	gpioWrite(D3, 0);
+	gpioDelay(5000);
+
+	gpioWrite(RD, 1);
+	gpioWrite(WR, 0);
+	gpioDelay(500000);
+
+	bin[2] = DataBusRD();
+	
+	Reset();  
+	
+	readStatus();
+	usleep(500000);
+
+	int num = bin[0]*100 + bin [1]*10 + bin[2];
+
+    printf("Tons Enviados para o Canal: %d\n", num);
+	usleep(3000000);
+	
 }
 
 void mandar_sinal() {
@@ -522,33 +580,51 @@ int main(int argc, char **argv){
 			return EXIT_FAILURE;
 		}    
 
-    // int funcao;
-    // printf("Recetor ou emissor? Recetor(1) Emissor(0)\n");
-    // scanf("%d",&funcao);
+	int funcao = 3;
 
-    // if(funcao==0) {
-		//colocar_on_hook();
-		//usleep(2000000);
-		//colocar_off_hook();
-		//usleep(2000000);
-        //verificar_dial_tone();
-        //usleep(2000000); //Pausa 10 seg para marcar o tom
-    //     Marcar dtmf 
-    	//mandar_dtmf();
-	    //usleep(10000000);
-		//mandar_dtmf();
-        //mandar_sinal();
+	while (funcao > 2) {
 
-    // }
-    // else{
-         receive_call();
-         mandar_dtmf_canal();
-    // }
+	printf("Recetor ou emissor? Recetor(0), Emissor(1), Terminar(2): ");
+    scanf("%d",&funcao);
+
+    if(funcao == 1) {
+		printf("\nInício dos Testes\n");
+		usleep(2000000);
+		colocar_on_hook();
+		usleep(2000000);
+		colocar_off_hook();
+		usleep(4000000);
+		printf("\nA começar o teste de dial-tone...\n");
+        verificar_dial_tone();
+        usleep(2000000); //Pausa 10 seg para marcar o tom
+    //  Marcar dtmf 
+		printf("\nA enviar tons DTMF...\n");
+    	mandar_dtmf();
+	    usleep(1000000);
+		printf("\nA Estabelecer Chamada...\n");
+		usleep(10000000);
+		mandar_dtmf_canal();
+		usleep(1000000);
+
+    }
+    else if(funcao == 0) {
+        receive_call();
+		usleep(1000000);
+        mandar_dtmf_canal();
+		usleep(1000000);
+    }
+	else if(funcao == 2) {
+        printf("Terminou o programa.\n");
+		break;
+    }
+	else {
+		printf("Resposta inválida!\n");
+	} }
 	
-	// (void)argc;
-	// (void)argv;
+	(void)argc;
+	(void)argv;
 
-    //gpioWrite(LRC, 0); //colocar relé a 0 na terminação
+    gpioWrite(LRC, 0); //colocar relé a 0 na terminação
 
     gpioTerminate();
     
