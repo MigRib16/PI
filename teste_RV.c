@@ -23,26 +23,21 @@ void colocar_off_hook() {
         gpioSetMode(LRC, PI_OUTPUT);
         gpioSetMode(LRD, PI_INPUT);
 
-
-        gpioWrite(LRC, 0);
-        gpioDelay(1000000);
         int state = gpioRead(LRD);
+        gpioWrite(LRC, 1);
+        printf("Pino SHK em nivel alto e estado off-hook\n");
+        gpioDelay(500000);
+}
 
-        if(state == 0)
-        {
-                gpioDelay(1000000);
-                gpioWrite(LRC, 1);
-                printf("Pino SHK em nivel alto e estado off-hook\n");
-        }
+void colocar_on_hook() {
+        int escolha;
 
-        else
-        {
-                printf("Pino SHK em nivel baixo e estado on-hook\n");
-                gpioDelay(1000000);
-                gpioWrite(LRC, 1);
-                printf("Pino SHK em nivel alto e estado off-hook\n");
-        }
+        gpioSetMode(LRC, PI_OUTPUT);
+        gpioSetMode(LRD, PI_INPUT);
 
+        int state = gpioRead(LRD);
+        gpioWrite(LRC, 0);
+        printf("Pino SHK em nivel baixo e estado on-hook\n");
         gpioDelay(500000);
 }
 
@@ -56,6 +51,8 @@ int main(){
 
 	//define inputs outputs
         gpioSetMode(RV, PI_INPUT);
+
+        colocar_on_hook();
         printf("Á espera de pedido de Chamada...\n");  
 
         struct timeval t1, t2;
@@ -71,7 +68,8 @@ int main(){
 	if(state == 0) {
 		printf("Ringing Voltage detetado\n");
         	gpioDelay(500000);
-                colocar_off_hook(); }
+                colocar_off_hook(); 
+                break; }
              
         // stop timer
 	gettimeofday(&t2, NULL);

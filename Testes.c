@@ -39,25 +39,19 @@ void performFFT(double *input, double complex *output, int size) {
 }
 
 void colocar_off_hook() {
-	int escolha;
+        gpioSetMode(LRC, PI_OUTPUT);
+        gpioSetMode(LRD, PI_INPUT);
+        gpioWrite(LRC, 1);
+        printf("Pino SHK em nivel alto e estado off-hook\n");
+        gpioDelay(500000);
+}
 
-	gpioWrite(LRC, 0);
-	gpioDelay(1000000);
-	int state = gpioRead(LRD);
-	
-	if(state == 1)
-	{
-		gpioDelay(1000000);
-		gpioWrite(LRC, 1);
-		printf("Pino SHK em nivel alto e estado off-hook\n");
-	}
-	
-	else 
-	{
-		printf("Pino SHK em nivel alto e estado off-hook\n");
-	}
-	
-	gpioDelay(500000);
+void colocar_on_hook() {
+        gpioSetMode(LRC, PI_OUTPUT);
+        gpioSetMode(LRD, PI_INPUT);
+        gpioWrite(LRC, 0);
+        printf("Pino SHK em nivel baixo e estado on-hook\n");
+        gpioDelay(500000);
 }
 
 void clearscreen ()
@@ -415,6 +409,57 @@ void mandar_dtmf() {
 
 }
 
+void mandar_dtmf_canal() {
+
+	while(1)
+	{
+	//define state of input
+	int close;
+	
+	printf("Quer Enviar Tons DTMF? Sim(1), Não(2)\n");
+	scanf("%d", &close);
+	
+	if (close == 2)
+		break;
+
+
+	int escolha;
+	int bin[4];
+	int i = 0;
+
+	printf("Que Tom DTMF quer enviar?\n");
+	scanf("%d", &escolha);
+
+	while(escolha > 0)
+	{
+		// obtém o resto da divisão de num por 2
+		bin[i] = escolha % 2;
+		i++;
+		escolha = escolha / 2;
+	}
+
+	gpioWrite(RSO, 0);		// Write 0010 on Transmit Data  
+	gpioDelay(50000);
+
+	Reset();
+
+	gpioWrite(D0, bin[0]);
+	gpioWrite(D1, bin[1]);
+	gpioWrite(D2, bin[2]);
+	gpioWrite(D3, bin[3]);
+	gpioDelay(5000);
+
+	gpioWrite(RD, 1);
+	gpioWrite(WR, 0);
+	gpioDelay(500000);
+
+	DataBusRD();
+	Reset();
+
+	readStatus(); }
+
+}
+
 void mandar_sinal() {
     
     gpioSetMode(SINAL, PI_OUTPUT);
@@ -436,6 +481,38 @@ void mandar_sinal() {
     }
 }
 
+void receive_call() {
+
+	gpioSetMode(RV, PI_INPUT);
+
+        colocar_on_hook();
+        printf("Á espera de pedido de Chamada...\n");  
+
+        struct timeval t1, t2;
+        // start timer
+        gettimeofday(&t1, NULL);
+
+	while(1)
+	{
+
+	//define state of input
+	int state = gpioRead(RV); 
+	
+	if(state == 0) {
+		printf("Ringing Voltage detetado\n");
+        	gpioDelay(500000);
+                colocar_off_hook(); 
+                break; }
+             
+        // stop timer
+		gettimeofday(&t2, NULL);
+        if (t2.tv_sec - t1.tv_sec > 30) {
+                printf("Não foi recebido nenhum pedido de chamada!\n");  
+                break; } 
+
+        }
+}
+
 int main(int argc, char **argv){
 	setvbuf (stdout, NULL, _IONBF, 0); // needed to print to the command line
 
@@ -450,6 +527,8 @@ int main(int argc, char **argv){
     // scanf("%d",&funcao);
 
     // if(funcao==0) {
+		//colocar_on_hook();
+		//usleep(2000000);
 		//colocar_off_hook();
 		//usleep(2000000);
         //verificar_dial_tone();
@@ -458,14 +537,12 @@ int main(int argc, char **argv){
     	//mandar_dtmf();
 	    //usleep(10000000);
 		//mandar_dtmf();
-        mandar_sinal();
+        //mandar_sinal();
 
     // }
     // else{
-         //verificar_RV();
-         //colocar_off_hook();
-         //printf("Chamada Estabelecida\n");
-         //mandar_dtmf();
+         receive_call();
+         mandar_dtmf_canal();
     // }
 	
 	// (void)argc;
