@@ -450,15 +450,15 @@ int main(int argc, char **argv){
     // scanf("%d",&funcao);
 
     // if(funcao==0) {
-		colocar_off_hook();
-		usleep(2000000);
-        verificar_dial_tone();
-        usleep(2000000); //Pausa 10 seg para marcar o tom
+		//colocar_off_hook();
+		//usleep(2000000);
+        //verificar_dial_tone();
+        //usleep(2000000); //Pausa 10 seg para marcar o tom
     //     Marcar dtmf 
-    	mandar_dtmf();
+    	//mandar_dtmf();
 	    //usleep(10000000);
 		//mandar_dtmf();
-        //mandar_sinal();
+        mandar_sinal();
 
     // }
     // else{
